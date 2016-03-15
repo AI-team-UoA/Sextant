@@ -89,9 +89,8 @@ followed in order to use Sextant in Eclipse:
   3. Install the m2e plugin for Eclipse from http://www.eclipse.org/m2e/.
   4. Install the MercurialEclipse plugin for Eclipse from
      http://javaforge.com/project/HGE .
-  5. From Eclipse, go to File --> Import --> Mercurial --> Clone Existing
-     Mercurial Repository --> Next. In the URL textarea paste the following
-     URL: http://hg.strabon.di.uoa.gr/Sextant-New and then press Next --> Next -->
+  5. From Eclipse, go to File --> Import --> Git --> Projects from Git --> Next --> Clone URI. In the URI textarea paste the following
+     URL: https://github.com/zefyros/Sextant.git and then press Next --> Next --> Next -->
      Finish. Right click on the project and select Configure --> Convert to
      Maven project. Eclipse will enable Maven dependency management for the
      project, download any dependencies and build the project. 	
