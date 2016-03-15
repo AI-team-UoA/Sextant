@@ -76,9 +76,7 @@ target folder under JerseyServer, to deploy in Tomcat(6+) server.
 
 Getting Started
 ===============
-To get started  with Sextant please have a look at the manual:
-	
-	http://sextant.di.uoa.gr/data/Sextant_manual.pdf
+Using Sextant is now easier than ever using the in-built manual pages. Click the help button at any screen to view the manual pages for this feature and navigate in the manual pages to find detailed information for all features.
 
 
 Developer Guide
