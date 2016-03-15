@@ -1,0 +1,65 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div> 
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Layers</a></li>
+                <li>Layer Manipulation</a></li>
+                <li class="active"><a href="./spatialFilter.html">Spatial Filtering</a></li>
+            </ol>
+        </div> 
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Filter the layer to a given location</h3>
+            <p>We can apply a spatial filter on a layer by clicking the <img src="./images/layerManipulation/filter.png" width="30px"> button of the layer in the Layers panel as shown in the picture below.</p>
+            <div>
+                <img src="./images/layerManipulation/filterButton.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>As a result we get a pop-up where we can select an area of interest, as shown in the figures below. In the first drop-down list we can choose a country. Then all the available regions of that country populate the next drop-down list. If we choose a region then the next drop-down list is populated with all the region units for this region. Finally if we select a region unit, the last drop-down list is populated with all the cities in this region unit. We can choose to stop at any point after the country selection to specify the desired location for the spatial filtering. When we click the <b>Apply</b> button, all the features of the layer tha are outside the boundaries of the specified location are styled with grey colors, while the rest are left unchanged. If we click the <b>Clear</b> button, any spatial filter on the layer is removed and all the features of the layer retrieve their original styles.</p>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/layerManipulation/filterModal.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/layerManipulation/filterModalExample.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div>
+        </div>    
+        
+        
+        
+    </body>
+</html>
+
+      

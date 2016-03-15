@@ -1,0 +1,72 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div> 
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Layers</a></li>
+                <li>Layer Manipulation</a></li>
+                <li class="active"><a href="./globalStyles.html">Global Styles</a></li>
+            </ol>
+        </div> 
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Change a layer's style</h3>
+            <p>We can change a layer's style by clicking the <img src="./images/layerManipulation/globalS.png" width="30px"> button of the layer in the Layers panel as shown in the picture below.</p>
+            <div>
+                <img src="./images/layerManipulation/globalSbutton.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>As a result we get a pop-up where we can choose the following attributes, as show in figure below:</p>
+            <ul>
+                <li><b>Stroke Color:</b> The color of the exterior of the layer's polygons</li>
+                <li><b>Stroke Width:</b> The width in pixels of the exterior of the layer's polygons</li>
+                <li><b>Fill Color:</b> The color of the interior of the layer's polygons</li>
+                <li><b>Icon URI:</b> An image to represent the points of a layer</li>
+                <li><b>Icon size:</b> The width of the image that represents the points, in pixels</li>
+            </ul>           
+            <p>In the case of temporal layers, <b>Stroke Color</b> is also used in the Timeline to show period events for the layer and <b>Icon URI</b> to show a timestamp events. Empty fields in the form are given default values automatically.</p>
+            <div>
+                <img src="./images/layerManipulation/globalSmodal.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br><br>
+            <p>When we click on the <b>Stroke Color</b> or the <b>Fill Color</b> buttons, we get the color selector shown below, where we can choose a color and click the <b>OK</b> button in the lower right corner to select it.</p>
+            <div>
+                <img src="./images/layerManipulation/colorSelection.png" width="30%" style="margin-left:35%;">
+            </div>
+        </div>    
+        
+        
+        
+    </body>
+</html>
+
+      
