@@ -1,0 +1,61 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div> 
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Layers</a></li>
+                <li>Layer Manipulation</a></li>
+                <li class="active"><a href="./statsChart.html">Create Feature Chart</a></li>
+            </ol>
+        </div> 
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Produce charts using layers' features</h3>
+            <p>We can create charts using the values of a layer's feature, using the Feature charts panel shown in the figure below</p>
+        	<div>
+                <img src="./images/layerManipulation/statsPanel.png" width="80%" style="margin-left:10%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>When we load a vector layer in Sextant, the <b>Layer</b> selection list is updated with the name of the layer. When we choose one of the available layers from the <b>Layer</b> drop-down list, the <b>Attribute</b> list is enabled and we can choose one of the numeric attributes of the selected layer. When the attribute is selected, a chart is produced as shown in the figure below</p>
+            <div>
+                <img src="./images/layerManipulation/statsChartExample.png" width="80%" style="margin-left:10%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>The produced charts are responsive and their features are connected to the features on the map, so when we click on a point in the chart, we view the selected feature on the map. We can also download the chart as an image to the download folder of the browser, using the <img src="./images/layerManipulation/downloadStatsChart.png" width="20px"> button.</p>
+        </div>    
+        
+        
+        
+    </body>
+</html>
+
+      

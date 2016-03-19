@@ -106,8 +106,7 @@ function printAll() {
 }
 
 function refreshMap() {
-	//map.zoomIn();
-	//map.zoomOut();
+	map.zoomOut();
 }
 
 /**
@@ -282,6 +281,7 @@ function createPolygon(bbox) {
 var animateLegend = 0;
 var animateTimeline = 0;
 var animateSwefs = 0;
+var animateStats = 0;
 function animateLegendPanel() {
 	if (animateLegend == 0) {	
 		document.getElementById('animatePanelButton').innerHTML = '<i class="fa fa-chevron-left fa-lg"></i>';
@@ -289,7 +289,11 @@ function animateLegendPanel() {
 		$("#legendPanel").animate({right: -($("#legendPanel").width())}, 500);		
 		animateLegend = 1;
 	}
-	else {		
+	else {
+		/*
+		if (animateStats == 1) {
+			animateStatsPanel();
+		}*/
 		document.getElementById('animatePanelButton').innerHTML = '<i class="fa fa-chevron-right fa-lg"></i>';
 		document.getElementById('animatePanelButton').title = 'Hide Panel';
 		$("#legendPanel").animate({right: 0}, 500);				
@@ -299,6 +303,9 @@ function animateLegendPanel() {
 
 function animateTimePanel() {
 	if (animateTimeline == 0) {	
+		if (animateStats == 1) {
+			animateStatsPanel();
+		}
 		document.getElementById('animateTimelineButton').innerHTML = '<i class="fa fa-chevron-right fa-lg"></i>';
 		document.getElementById('animateTimelineButton').title = 'Hide Timeline';
 		$("#tmContainer").animate({right: 0}, 500);		
@@ -309,6 +316,27 @@ function animateTimePanel() {
 		document.getElementById('animateTimelineButton').title = 'Show Timeline';
 		$("#tmContainer").animate({right: -($("#tmContainer").width())}, 500);				
 		animateTimeline = 0;
+	}
+}
+
+function animateStatsPanel() {
+	if (animateStats == 0) {
+		if (animateLegend == 0) {
+			animateLegendPanel();
+		}
+		if (animateTimeline == 1) {
+			animateTimePanel();
+		}
+		document.getElementById('animateStatsPanelButton').innerHTML = '<i class="fa fa-chevron-right fa-lg"></i>';
+		document.getElementById('animateStatsPanelButton').title = 'Hide Stats';
+		$("#statsContainer").animate({right: 0}, 500);		
+		animateStats = 1;
+	}
+	else {		
+		document.getElementById('animateStatsPanelButton').innerHTML = '<i class="fa fa-chevron-left fa-lg"></i>';
+		document.getElementById('animateStatsPanelButton').title = 'Show Stats';
+		$("#statsContainer").animate({right: -($("#statsContainer").width())-500}, 500);				
+		animateStats = 0;
 	}
 }
 

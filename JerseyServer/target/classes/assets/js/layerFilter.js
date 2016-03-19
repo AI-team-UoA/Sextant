@@ -1,3 +1,69 @@
+var mapFilter;
+var drawControlFilter;
+var boxLayerFilter = null;
+
+
+function initSearchMapFilter() {
+	document.getElementById('searchMapExtentFormFilter').style.display = 'block';
+	document.getElementById('drawExtentButtonFilter').disabled = true;
+	
+	//Initialize map
+	mapFilter = new OpenLayers.Map('mapExtentFilter');
+	
+	var ghyb = new OpenLayers.Layer.Google("Google Hybrid",
+            {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 15, visibility: false}
+            );
+	mapFilter.addLayers([ghyb]);
+	mapFilter.setBaseLayer(ghyb);
+	
+	mapFilter.setCenter(new OpenLayers.LonLat(23.72275, 37.92253).transform(new OpenLayers.Projection("EPSG:4326"), mapFilter.getProjectionObject()), 6, true, true);
+	mapFilter.projection = WGS84_google_mercator;
+	mapFilter.displayProjection = WGS84;
+	
+	//Add draw box contols
+	boxLayerFilter = new OpenLayers.Layer.Vector("Box layer filter");
+	drawControlFilter = new OpenLayers.Control.DrawFeature(boxLayerFilter,
+	                                                     OpenLayers.Handler.RegularPolygon, 
+	                                                     { 
+															eventListeners: {'featureadded': newPolygonAddedFilter},
+											      			handlerOptions: {
+											      				sides: 4,
+										                        irregular: true
+											      			}
+	                                                     });
+	mapFilter.addControl(drawControlFilter);
+	mapFilter.addLayer(boxLayerFilter);
+}
+
+function enableControlFilter() {
+	drawControlFilter.activate();
+	document.getElementById("enableControlDrawFilter").style.borderColor = "red";
+}
+
+function newPolygonAddedFilter() {
+	drawControlFilter.deactivate();
+	document.getElementById("enableControlDrawFilter").style.borderColor = '#ccc';	
+}
+
+function resetPolygonBoxFilter() {
+	boxLayerFilter.removeAllFeatures();
+	drawControlFilter.deactivate();
+}
+
+function resetFilterMapForm() {	
+	var divRef = document.getElementById('mapExtentFilter');
+	
+	while (divRef.firstChild) {
+		divRef.removeChild(divRef.firstChild);
+	}	
+	boxLayerChangeset = null;
+	
+	document.getElementById('searchMapExtentFormFilter').style.display = 'none';
+	document.getElementById('drawExtentButtonFilter').disabled = false;
+	
+	document.getElementById('filterSearchForm').reset();
+}
+//////////////////////////
 function setFilters(name) {
 	document.getElementById('layerID').innerHTML = name;
 	enableCountriesLayer();	
@@ -11,18 +77,26 @@ function applySpatialFilterLayer() {
 	var filterValueRegionUnit = document.getElementById('layerSpatialFilterValue3').options[document.getElementById('layerSpatialFilterValue3').selectedIndex].value;	
 	var filterValueCity = document.getElementById('layerSpatialFilterValue4').options[document.getElementById('layerSpatialFilterValue4').selectedIndex].value;	
 	
+	var extent = 'null';
 	var filterPlace = getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity);
 	var filterValue = getBBOX(filterPlace, 'bbox');
 	
 	if (filterValue != ',,,') {
+		extent = filterValue;
+	}
+	else if(boxLayerFilter != null) {
+		if (boxLayerFilter.getDataExtent() != null) {		
+			extent = boxLayerFilter.getDataExtent();			
+		}
+	}
+	if (extent != 'null') {	
 		var layer = map.getLayersByName(name)[0];
 		var features = layer.features;
-		
 		for(var i=0; i< features.length; i++) {			
 			var featureBounds = new OpenLayers.Bounds(features[i].geometry.getBounds().toArray());
 			featureBounds = featureBounds.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
 			
-	        if(!filterValue.intersectsBounds(featureBounds)) {
+	        if(!extent.intersectsBounds(featureBounds)) {
 	        	features[i].style = new OpenLayers.Style();	        	
 	        	features[i].style.fillColor = '#A0A0A0';
 	        	features[i].style.strokeColor = '#A0A0A0';
@@ -152,5 +226,7 @@ function clearLayerSpatialFilterForm() {
 	document.getElementById('layerSpatialFilterValue2').disabled = true;
 	document.getElementById('layerSpatialFilterValue3').disabled = true;
 	document.getElementById('layerSpatialFilterValue4').disabled = true;
+	
+	resetFilterMapForm();
 }
 

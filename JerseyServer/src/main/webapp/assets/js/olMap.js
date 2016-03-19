@@ -120,6 +120,8 @@ var clickFeatureStyle = new OpenLayers.Style({
     strokeOpacity: 1
 });
 
+var currentStyle = null;
+
 /**
  * Function for initializing the OpenLayers map
  * (called on Window load)
@@ -127,6 +129,7 @@ var clickFeatureStyle = new OpenLayers.Style({
 function initialize(timeMap) {
 	if (!map){
 		document.getElementById('tmContainer').style.right = '-3000px';
+		document.getElementById('statsContainer').style.right = '-3000px';
 		isTimeMap = 1;
 			
 		/**
@@ -242,6 +245,9 @@ function initialize(timeMap) {
     alasql('CREATE TABLE geodata; SELECT * INTO geodata FROM CSV("./assets/resources/gadm28.csv", {headers:true, separator:";"})');
 
     currentFeature = null;
+    
+    document.getElementsByClassName('timeline-band-0')[0].style.backgroundColor = 'rgba(255,255,255,0)';
+    document.getElementsByClassName('timeline-band-1')[0].style.backgroundColor = 'rgba(255,255,255,0)';
 }
 
 /**
@@ -287,8 +293,6 @@ function addWMSLayer(name, url, layersWMS) {
         var newWMScontrol = new controlWMS(name, infoWMScontrol);
         infoWMS.push(newWMScontrol);
         
-					
-		// when loaded, calculate the new extent for all layers and zoom to it
 		layer.events.register('loadend', layer, function (evt) {
 	                          	setTimeout(function() {$('#alertMsgLoading').fadeOut('slow');}, fadeTime);	                        	
 	                          	hideSpinner();	   	                          		                                                                                        
@@ -362,8 +366,19 @@ function onFeatureSelect(evt) {
 	else {	
 		feature = evt.feature;
 		
-		if (!clickTimeline) {
+		if (!clickTimeline && !clickStats) {
 	    	lonLat = map.getLonLatFromPixel(new OpenLayers.Pixel(mouseControl.lastXy.x, mouseControl.lastXy.y));
+		}
+		
+		if (feature.style != null) {
+			currentStyle = feature.style;
+			feature.style = new OpenLayers.Style();	        	
+			feature.style.fillColor = 'blue';
+			feature.style.strokeColor = 'blue';
+			feature.style.strokeWidth = 1;
+			feature.style.strokeOpacity = 1;
+			feature.style.fillOpacity = 0.4;
+			feature.layer.redraw();
 		}
 		
 		popupClose(0);
@@ -1119,22 +1134,12 @@ function addKmlLayer(label, filename, styling, isTemp) {
 	                              	}
 	                              	
 	                              	for (var i=0; i<mapLayers.length; i++) {
-	                            		if ( (mapLayers[i].name === label) && (label != 'userInfo')) {
-    	                            		//for first feature of a KML layer keep the attributes names
-	                            			var featuresNames = "";
-	    	                            	var jsonObj = layer.features[0].attributes;
-	    	                            	
-	    	                            	for (var key in jsonObj) {
-	    	                            		if (key != 'description') {
-	    	                            			featuresNames = featuresNames.concat(key+',');
-	    	                            		}
-	    	                            	}
-	    	                            	
-		                            		mapLayers[i].features = featuresNames;
+	                            		if ( (mapLayers[i].name === label) && (label != 'userInfo')) {   	                            		
+		                            		mapLayers[i].features = getLayerFeatureNames(layer);
 	    	                            	break;
 	                            		}
 	                            	}
-	                            	
+	                              		                            	
 	                              	styleFeaturesTheme(label);
 	                              	hideSpinner();	                              	                                
 	                              		                              		                              	
@@ -1152,7 +1157,9 @@ function addKmlLayer(label, filename, styling, isTemp) {
 	          						
 	                                //Update the size of the map
 	                                map.updateSize();
-	                                refreshMap();		                                
+	                                refreshMap();	
+	                                
+	                                updateLayerStats(label);
 	                             });
 			
 			// when removed, close all popups that may have been
@@ -1299,18 +1306,8 @@ function addGmlLayer(label, filename, styling, isTemp) {
                               	}	                              	                              	                       
                             	
                               	for (var i=0; i<mapLayers.length; i++) {
-                            		if ( (mapLayers[i].name === label) && (label != 'userInfo')) {
-	                            		//for first feature of a KML layer keep the attributes names
-                            			var featuresNames = "";
-    	                            	var jsonObj = layer.features[0].attributes;
-    	                            	
-    	                            	for (var key in jsonObj) {
-    	                            		if (key != 'description') {
-    	                            			featuresNames = featuresNames.concat(key+',');
-    	                            		}
-    	                            	}
-    	                            	
-	                            		mapLayers[i].features = featuresNames;
+                            		if ( (mapLayers[i].name === label) && (label != 'userInfo')) {   	                            		
+	                            		mapLayers[i].features = getLayerFeatureNames(layer);
     	                            	break;
                             		}
                             	}
@@ -1324,7 +1321,9 @@ function addGmlLayer(label, filename, styling, isTemp) {
                     			
                                 //Update the size of the map
                                 map.updateSize();
-                                refreshMap();                                                                
+                                refreshMap();     
+                                
+                                updateLayerStats(label);
                               });
 			
 		// when removed, close all popups that may have been

@@ -347,6 +347,7 @@ function onFeatureSelectTimeline(feature) {
  */
 var popupCloseTrigger = false;
 function popupClose(mode) {
+	//mode == 0: JS trigger
 	
 	//UI close button trigger
 	if (mode == 1) {
@@ -373,6 +374,11 @@ function popupClose(mode) {
 					}
 				}
 			}
+			
+			if (currentFeature.style != null && mode != 2) {
+				currentFeature.style = currentStyle;
+				currentFeature.layer.redraw();
+			}
 		}
 	}
 	
@@ -388,6 +394,10 @@ function popupClose(mode) {
 	
 	if (clickTimeline) {
 		clickTimeline = false;
+	}
+	
+	if (clickStats) {
+		clickStats = false;
 	}
 }
 

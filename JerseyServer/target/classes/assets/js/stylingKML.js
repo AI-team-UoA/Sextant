@@ -44,7 +44,7 @@ function changeStyles() {
         pointRadius: "${pointRadius}",
         externalGraphic: "${externalGraphic}",
         graphicOpacity: 1,
-        fillOpacity: 0.3,
+        fillOpacity: 0.5,
         strokeOpacity: 1,
         fontColor: "#CC0099",
 		fontOpacity: 1,
@@ -170,7 +170,7 @@ function styleFeatures() {
 			iconSize : 10,
 			urlTemp : "./assets/images/map-pin-md.png",
 			graphicOpacity: 1,
-			fillOpacity: 0.3,
+			fillOpacity: 0.5,
 	        strokeOpacity: 1
 		}
 	});	
@@ -227,7 +227,7 @@ function styleFeatures() {
 				strokeColor: rgb2hex(document.getElementById('color'+i).style.backgroundColor),
 				strokeWidth: 1,
 				iconSize : 20,
-				fillOpacity: 0.3,
+				fillOpacity: 0.5,
 		        strokeOpacity: 1
 			}
 		});

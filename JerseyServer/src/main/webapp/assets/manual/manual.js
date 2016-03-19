@@ -22,6 +22,7 @@ function loadMenu() {
 	'            <li><a href="./baseMap.html">Select base map</a></li>'+
 	'            <li><a href="./showMainPanel.html">Show/Hide main panel</a></li>'+
 	'            <li><a href="./showTimeline.html">Show/Hide Timeline</a></li>'+
+	'            <li><a href="./showStats.html">Show/Hide Feature charts</a></li>'+
 	'            <li><a href="./proxy.html">Proxy server</a></li>'+
 	'          </ul>'+
 	'        </li>'+
@@ -48,6 +49,7 @@ function loadMenu() {
 	'                <li><a href="./moveTop.html">Move on top</a></li>'+
 	'                <li><a href="./download.html">Download</a></li>'+
 	'                <li><a href="./delete.html">Delete</a></li>'+
+	'                <li><a href="./statsChart.html">Create Feature Chart</a></li>'+
 	'                <li class="divider"></li>'+
 	'            	 <li class="dropdown-header"><b>Timeline-Temporal Layers</b></li>'+
 	'            	 <li><a href="./moveTimeline.html">Move Timeline</a></li>'+

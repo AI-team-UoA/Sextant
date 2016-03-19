@@ -204,7 +204,7 @@ function lineChartTemplate(myChart, queryResults) {
  * @param barTemplate
  * @param queryResults
  */
-function addDataToBarChart(myChart, chartTemplate, queryResults, dimension, myChartId) {
+function addDataToChart(myChart, chartTemplate, queryResults, dimension, myChartId) {
 	var dimFreeNum = myChart.freeDims.length;
 	var measureNum = myChart.measures.length;
 	var num = dimFreeNum + measureNum;

@@ -50,7 +50,7 @@ function styleFeaturesTheme(name) {
     
 	//Re-render the layer with the new styles
     var temp = map.getLayersByName(name);
-	temp[0].styleMap.addRules(allRulesThemes);
+	temp[0].styleMap.styles.default.addRules(allRulesThemes);
 	temp[0].redraw();
     
     //Update the layer colors to default. This colorization is not saved

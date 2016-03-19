@@ -353,6 +353,8 @@ function deleteLayer(tableRef, position, isTemp, name) {
     //Show renewed last modification date and number of layers
     document.getElementById('infoNumOfLayers').innerHTML = mapLayers.length;
     
+    resetStatsInfo(name);
+    
     //Adjust bounds  
 	zoomToAll();
 }
@@ -390,9 +392,95 @@ function createModalBody(featureNames) {
 	document.getElementById('color0').style.backgroundColor = colorTable[0];
 }
 
+function updateLayerStats(label) {
+	var selectDiv = document.getElementById('layerNameStats');
+	selectDiv.innerHTML += '<option value="'+label+'">'+label+'</option>';
+}
 
+function updateAttrStatsSelect() {
+	if (currentLayer != null) {
+		for(var i=0; i< currentLayer.features.length; i++) {
+			currentLayer.features[i].style = null;     
+	    }
+		currentLayer.redraw();
+	}
+	
+	var selectDivLayer = document.getElementById('layerNameStats');
+	var selectDivAttr = document.getElementById('layerAttributesStats');
+	selectDivAttr.innerHTML = '<option value="" disabled selected>Attribute</option>';
+	var canvasChartDiv = document.getElementById('statsChart');
+	canvasChartDiv.innerHTML = '<canvas id="myNewStatsCanvas"></canvas>';
+	var layerName = selectDivLayer.options[selectDivLayer.selectedIndex].value;	
+	if (layerName == 'defaultVal') {
+		selectDivAttr.disabled = true;
+		document.getElementById('downloadStatChart').disabled = true;
+		document.getElementById('simple-slider').style.display = 'none';
+		return;
+	}
+	
+	var layer = map.getLayersByName(layerName)[0];		
+	currentLayer = layer;
+	
+	for (var i=0; i<layer.features.length; i++) {
+		for (var key in layer.features[i].attributes) {
+			var attrFound = false;
+			if (layer.features[i].attributes.hasOwnProperty(key)) {
+				if (key != 'name' && !isNaN(layer.features[i].attributes[key])) {
+				//if (key != 'name') {
+					for (var j=0; j<selectDivAttr.length; j++) {
+						if (selectDivAttr.options[j].value == key) {
+							attrFound = true;
+							break;
+						}
+					}
+					if (!attrFound) {
+						selectDivAttr.innerHTML += '<option value="'+key+'">'+key+'</option>';
+					}
+				}
+			}	
+		}			
+	}
+	
+	if (selectDivAttr.length > 1) {
+		selectDivAttr.disabled = false;
+	}
+	
+	document.getElementById('downloadStatChart').disabled = true;
+}
 
+function resetStatsInfo(label) {
+	var selectDivLayer = document.getElementById('layerNameStats');
+	for (var i=0; i<selectDivLayer.length; i++) {
+		if (selectDivLayer.options[i].value == label) {
+			selectDivLayer.remove(i);
+		}
+	}
+	selectDivLayer.value = 'defaultVal';
+	
+	var selectDivAttr = document.getElementById('layerAttributesStats');
+	selectDivAttr.innerHTML = '<option value="" disabled selected>Attribute</option>';
+	selectDivAttr.disabled = true;
+	document.getElementById('downloadStatChart').disabled = true;	
+	
+	var canvasChartDiv = document.getElementById('statsChart');
+	canvasChartDiv.innerHTML = '<canvas id="myNewStatsCanvas"></canvas>';
+}
 
+function getLayerFeatureNames(layer) {
+	var featureNames = [];
+	for (var i=0; i<layer.features.length; i++) {
+		for (var key in layer.features[i].attributes) {
+			if (layer.features[i].attributes.hasOwnProperty(key)) {
+				if (featureNames.indexOf(key) == -1 && key != 'description') {
+					featureNames.push(key);
+					break;
+				}
+			}	
+		}			
+	}
+	
+	return featureNames.toString();
+}
 
 
 

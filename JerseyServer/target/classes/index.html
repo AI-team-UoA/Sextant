@@ -62,7 +62,11 @@
     <script type="text/javascript" src="./assets/js/findChanges.js"></script>
     <script type="text/javascript" src="./assets/js/layerFilter.js"></script>
     <script type="text/javascript" src="./assets/js/myTimeline.js"></script>
+    <script type="text/javascript" src="./assets/js/stats.js"></script>
     
+    <!-- Dragdealer JS -->
+    <script type="text/javascript" src="./assets/js/dragdealer.js"></script>
+    <link href="./assets/css/dragdealer.css" rel="stylesheet" />
     
     <!-- SIMILE timeline -->
     <script src="http://api.simile-widgets.org/timeline/2.3.1/timeline-api.js" type="text/javascript"></script>
@@ -87,7 +91,6 @@
     <!-- Custom CSS -->
     <link href="./assets/css/signin.css" rel="stylesheet" />
     <link href="./assets/css/sextant.css" rel="stylesheet" />
-    
     
     <!-- End Of Imports --> 
      
@@ -1733,30 +1736,41 @@
 		      </div>
 		      <div class="modal-body">
 		        <a onClick="showHelpPage('spatialFilter.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>
-		      		        
-		        <div style="padding: 0px 75px">
-		        		<h4>Layer name: <b id="layerID"></b></h4>
-		        		<h5>Select Area of Interest</h4>
-		        		<select class="form-control" id="layerSpatialFilterValue1" style="margin-bottom: 2px" onChange="enableRegionSelectLayer()">
-			       	      	<option value="" disabled selected>Country</option>
-			       	      	<!-- Add all available countries -->			       	      	
-			       	  	</select>
-			       	  	<select class="form-control" id="layerSpatialFilterValue2" style="margin-bottom: 2px" onChange="enableRegionUnitSelectLayer()" disabled>
-			       	  		<option value="" disabled selected>Region</option>
-			       	  		<!-- Add regions for the selected Country -->
-			       	  	</select>
-			       	  	<select class="form-control" id="layerSpatialFilterValue3" style="margin-bottom: 2px" onChange="enableCitySelectLayer()" disabled>
-			       	  		<option value="" disabled selected>Region Unit</option>
-			       	  		<!-- Add region units for the selected region -->
-			       	  	</select>
-			       	  	<select class="form-control" id="layerSpatialFilterValue4" style="margin-bottom: 20px" disabled>
-			       	  		<option value="" disabled selected>City</option>
-			       	  		<!-- Add cities for the selected region unit -->
-			       	  	</select>	        		
+		      	
+		      	<form class="form-signin" role="form" action="#" id="filterSearchForm" >	        
 		        	
-		        </div>
+		        		<h4>Layer name: <b id="layerID"></b></h4>
+		        		<h5>Select Area of Interest</h5>
+			            <h5><small>(You can choose one from the lists below, or draw an area on the map.)</small></h5>
+		        		<div>
+			        		<select class="form-control" id="layerSpatialFilterValue1" style="margin-bottom: 2px" onChange="enableRegionSelectLayer()">
+				       	      	<option value="" disabled selected>Country</option>
+				       	      	<!-- Add all available countries -->			       	      	
+				       	  	</select>
+				       	  	<select class="form-control" id="layerSpatialFilterValue2" style="margin-bottom: 2px" onChange="enableRegionUnitSelectLayer()" disabled>
+				       	  		<option value="" disabled selected>Region</option>
+				       	  		<!-- Add regions for the selected Country -->
+				       	  	</select>
+				       	  	<select class="form-control" id="layerSpatialFilterValue3" style="margin-bottom: 2px" onChange="enableCitySelectLayer()" disabled>
+				       	  		<option value="" disabled selected>Region Unit</option>
+				       	  		<!-- Add region units for the selected region -->
+				       	  	</select>
+				       	  	<select class="form-control" id="layerSpatialFilterValue4" style="margin-bottom: 20px" disabled>
+				       	  		<option value="" disabled selected>City</option>
+				       	  		<!-- Add cities for the selected region unit -->
+				       	  	</select>	        		
+		        		</div>
+		        		<input type="button" id="drawExtentButtonFilter" class="btn btn-block btn-md btn-default" value="Draw Extent" onClick="initSearchMapFilter()" style="margin-top: 10px; margin-bottom: 10px"/>
+				          <div class="form-control" style="display: none;" id="searchMapExtentFormFilter">
+				          	<div id="mapExtentFilter">			          		
+				          			<!-- Add map with javascript -->
+				          	</div>	
+				          	<div class="btn-group" id="searchFormGroupButtonsFilter" role="group" aria-label="...">
+				          	  <button type="button" id="enableControlDrawFilter" title="Draw Rectangle" class="btn btn-md btn-default" onClick="enableControlFilter()" style="margin-right: 2px"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>	        
+				          	  <button type="button" id="resetExtentButtonFilter" class="btn btn-md btn-default" onClick="resetPolygonBoxFilter()" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+				          	</div>
+				          </div>
 		        
-		        <form class="form-signin" role="form" action="#">
 			        <div class="leftButton">
 						<button type="button" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="applySpatialFilterLayer()">Apply</button>    	
 					</div>
@@ -1921,51 +1935,58 @@
       	      	  <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
       	      </button>
       	  </div>
-      	  <div id="currentTime">
-      	      
+      	  
+      	  <div class="row" id="timelineInfo">
+      	  	  <div class="col-md-1 col-sm-1" id="helpTimeline">
+	      	  	  <a onClick="showHelpPage('moveTimeline.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>
+      	  	  </div>
+      	  	  <div class="col-md-11 col-sm-11" id="currentTime">
+      	  	  </div>
       	  </div>
+      	  
       	  <div id="days">
       	  	  <input type="text" class="form-control" placeholder="10" id="metric" style="text-align: center;">
       	  </div>
-      	  <div id="helpTimeline">
-      	  	  <a onClick="showHelpPage('moveTimeline.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>
-      	  </div>
+      	  
 	  </div>   
 	  
 	  
-	  <!-- 
-	  <div id="swefsPanel" class="container">
-	  	  <div class="page-header" style="margin-top: 15px; text-align: center">
-		      <h4>TIME Control Panel</h4>
-		  </div>
-		  
-		  <div id="showTime" style="margin-bottom: 10px; text-align: center">
-		  	  <p id="localTime"></p>
-		  </div>
-		  
-		  <div class="row">
-			<div class="col-md-4 col-sm-4">
-	      		<button type="button" id="swefsBack" title="Load data Backward" class="btn btn-default btn-block" onClick="loadMapBackward()"><i class="fa fa-step-backward fa-lg"></i></button>	       
-			</div>
-			<div class="col-md-4 col-sm-4">
-	      		<button type="button" id="sefsPlay" title="Load Current data" class="btn btn-default btn-block" onClick="loadMapCurrent()"><i class="fa fa-play fa-lg"></i></button>	       
-			</div>
-			<div class="col-md-4 col-sm-4">
-	      		<button type="button" id="swefsForward" title="Load data Forward" class="btn btn-default btn-block" onClick="loadMapForward()"><i class="fa fa-step-forward fa-lg"></i></button>	       
-			</div>
-	      </div>
-	      
-	      <input type="text" class="form-control" placeholder="300 (time step in seconds)" id="swefsTimeStep" style="text-align: center; margin-top: 10px">
-	      
+	  
+	  <div id="statsContainer" class="container">
+	  	  <div id="selectChartAttr" class="row">
+	  	  	  <div class="col-md-1 col-sm-1" id="helpTimeline">
+	      	  	    <a onClick="showHelpPage('statsChart.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>
+      	  	  </div>
+      	  	  <div class="col-md-7 col-sm-7">
+      	  	  		<select class="form-control" id="layerNameStats" onChange="updateAttrStatsSelect()" title="Layer">
+				        <option value="defaultVal" selected>Layer</option>
+				    </select>
+      	  	  </div>
+      	  	  <div class="col-md-7 col-sm-7 col-sm-offset-1 col-md-offset-1" style="margin-top:2px">
+      	  	  		<select class="form-control" id="layerAttributesStats" onChange="drawAttrChart()" title="Attribute" disabled>
+				        <option value="defaultVal" disabled selected>Attribute</option>
+				    </select>
+      	  	  </div>
+	  	  </div>
+	  	  
+	  	  <div id="simple-slider" class="dragdealer" style="display: none">
+    		  <div class="handle move-bar" title="Scroll chart"></div>
+  		  </div>
+	  	  
+	  	  <button type="button" id="downloadStatChart" title="Download chart" class="btn btn-default btn-lg" onClick="downloadStatsChart()" disabled><i class="fa fa-download fa-2x"></i></button>	        	  	  	  	  
+	  
+	  	  <div id="statsChart">
+	  	  	  <canvas id="myNewStatsCanvas"></canvas>
+	  	  </div>
 	  </div> 
-      -->
+      
 <!-- ********************************************************************************************************************************** -->          
           
       <!-- Manage Layers View. This div acts as another .html page by using style:display so that we dont lose the map that is loaded -->     
       <div id="legendPanel">  
 	      <button type="button" id="animatePanelButton" title="Hide Panel" class="btn btn-danger" onClick="animateLegendPanel()"><i class="fa fa-chevron-right fa-lg"></i></button>	       
 	      <button type="button" id="animateTimelineButton" title="Show Timeline" class="btn btn-info" onClick="animateTimePanel()"><i class="fa fa-chevron-left fa-lg"></i></button>	       
-	      <!-- <button type="button" id="animateSwefsPanelButton" title="Show SWeFS Panel" class="btn btn-primary" onClick="animateSwefsPanel()"><i class="fa fa-chevron-left fa-lg"></i></button> -->	       
+	      <button type="button" id="animateStatsPanelButton" title="Show Stats" class="btn btn-primary" onClick="animateStatsPanel()"><i class="fa fa-chevron-left fa-lg"></i></button>	       
 	    <div class="container" id="sextantPanels"> 
 	     
 	      <div id="layerspageHeader" data-toggle="collapse" data-target="#layerspage" aria-expanded="false" aria-controls="layerspage">
