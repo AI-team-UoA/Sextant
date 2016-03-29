@@ -1,53 +1,21 @@
-var mapFilter;
-var drawControlFilter;
-var boxLayerFilter = null;
-
-
 function initSearchMapFilter() {
 	document.getElementById('searchMapExtentFormFilter').style.display = 'block';
-	document.getElementById('drawExtentButtonFilter').disabled = true;
-	
+	document.getElementById('drawExtentButtonFilter').disabled = true;	
+		
 	//Initialize map
-	mapFilter = new OpenLayers.Map('mapExtentFilter');
+	mapFilter = new ol.Map({
+        layers: [base, vector],
+        target: 'mapExtentFilter',
+        view: new ol.View({
+          center: center,
+          zoom: 6
+        })
+    });
 	
-	var ghyb = new OpenLayers.Layer.Google("Google Hybrid",
-            {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 15, visibility: false}
-            );
-	mapFilter.addLayers([ghyb]);
-	mapFilter.setBaseLayer(ghyb);
-	
-	mapFilter.setCenter(new OpenLayers.LonLat(23.72275, 37.92253).transform(new OpenLayers.Projection("EPSG:4326"), mapFilter.getProjectionObject()), 6, true, true);
-	mapFilter.projection = WGS84_google_mercator;
-	mapFilter.displayProjection = WGS84;
-	
-	//Add draw box contols
-	boxLayerFilter = new OpenLayers.Layer.Vector("Box layer filter");
-	drawControlFilter = new OpenLayers.Control.DrawFeature(boxLayerFilter,
-	                                                     OpenLayers.Handler.RegularPolygon, 
-	                                                     { 
-															eventListeners: {'featureadded': newPolygonAddedFilter},
-											      			handlerOptions: {
-											      				sides: 4,
-										                        irregular: true
-											      			}
-	                                                     });
-	mapFilter.addControl(drawControlFilter);
-	mapFilter.addLayer(boxLayerFilter);
-}
-
-function enableControlFilter() {
-	drawControlFilter.activate();
-	document.getElementById("enableControlDrawFilter").style.borderColor = "red";
-}
-
-function newPolygonAddedFilter() {
-	drawControlFilter.deactivate();
-	document.getElementById("enableControlDrawFilter").style.borderColor = '#ccc';	
-}
-
-function resetPolygonBoxFilter() {
-	boxLayerFilter.removeAllFeatures();
-	drawControlFilter.deactivate();
+	document.getElementsByClassName('ol-zoom')[0].style.top = '10px';
+	document.getElementsByClassName('ol-zoom')[0].style.left = '10px';
+   
+    addInteraction();
 }
 
 function resetFilterMapForm() {	
@@ -56,12 +24,13 @@ function resetFilterMapForm() {
 	while (divRef.firstChild) {
 		divRef.removeChild(divRef.firstChild);
 	}	
-	boxLayerChangeset = null;
 	
 	document.getElementById('searchMapExtentFormFilter').style.display = 'none';
 	document.getElementById('drawExtentButtonFilter').disabled = false;
 	
 	document.getElementById('filterSearchForm').reset();
+	
+	vector.getSource().clear();
 }
 //////////////////////////
 function setFilters(name) {
@@ -81,35 +50,50 @@ function applySpatialFilterLayer() {
 	var filterPlace = getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity);
 	var filterValue = getBBOX(filterPlace, 'bbox');
 	
-	if (filterValue != ',,,') {
+	if (filterValue != null) {
 		extent = filterValue;
+		extent = ol.proj.transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
 	}
-	else if(boxLayerFilter != null) {
-		if (boxLayerFilter.getDataExtent() != null) {		
-			extent = boxLayerFilter.getDataExtent();			
-		}
+	else if(vector.getSource().getFeatures().length > 0) {			
+		extent = vector.getSource().getExtent();					
 	}
+	
+	//console.log(extent);
+		
 	if (extent != 'null') {	
-		var layer = map.getLayersByName(name)[0];
-		var features = layer.features;
-		for(var i=0; i< features.length; i++) {			
-			var featureBounds = new OpenLayers.Bounds(features[i].geometry.getBounds().toArray());
-			featureBounds = featureBounds.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-			
-	        if(!extent.intersectsBounds(featureBounds)) {
-	        	features[i].style = new OpenLayers.Style();	        	
-	        	features[i].style.fillColor = '#A0A0A0';
-	        	features[i].style.strokeColor = '#A0A0A0';
-	        	features[i].style.strokeWidth = 1;
-	        	features[i].style.strokeOpacity = 1;
-	        	features[i].style.fillOpacity = 0.3;
-	        	features[i].style.externalGraphic = '';
-	        }
-	        else {
-	        	features[i].style = null;
-	        }
-	    }
-	    layer.redraw();
+		var selectedLayer = null;
+		map.getLayers().forEach(function(layer) {
+        	if (layer.get('title') == name) {
+        		selectedLayer = layer;
+        	}
+        });
+		
+		var layerExtent = selectedLayer.getSource().getSource().getExtent();
+		if (!ol.extent.intersects(extent, layerExtent)) {
+			var newStyle = new ol.style.Style({
+				stroke: new ol.style.Stroke({
+			        color: [160, 160, 160, 1],
+			        width: 1
+			    }),
+			    fill: new ol.style.Fill({
+			        color: [160, 160, 160, 0.4]
+			    }),
+			    image: new ol.style.Circle({
+		    	    fill: new ol.style.Fill({
+		    	      color: [160, 160, 160, 0.4]
+		    	    }),
+		    	    radius: 5,
+		    	    stroke: new ol.style.Stroke({
+		    	      color: [160, 160, 160, 1],
+		    	      width: 1
+		    	    })
+		    	})
+			});
+			selectedLayer.getSource().setStyle(newStyle);
+		}
+		else {
+			selectedLayer.getSource().setStyle(defaultVectorStyle);
+		}
 		
 		document.getElementById('alertApplySpatialFilter').style.display = 'block';
 		setTimeout(function() {$('#alertApplySpatialFilter').fadeOut('slow');}, fadeTime);	
@@ -124,14 +108,12 @@ function applySpatialFilterLayer() {
 
 function clearSpatialFilterLayer() {
 	var name = document.getElementById('layerID').innerHTML;
-	var layer = map.getLayersByName(name)[0];
-	var features = layer.features;
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == name) {
+    		layer.getSource().setStyle(defaultVectorStyle);
+    	}
+    });
 	
-	//Show all features of the layer
-	for(var i=0; i< features.length; i++) {
-        features[i].style = null;     
-    }
-    layer.redraw();
     clearLayerSpatialFilterForm();
     
 	document.getElementById('alertClearSpatialFilter').style.display = 'block';

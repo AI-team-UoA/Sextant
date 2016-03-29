@@ -6,11 +6,7 @@ var pageSizeDiscover = 100;
 
 var constraints, options, node;
 var startNode, indexPage;
-var whatSBA = "", whatKEYS, extentGEOSS, south, west, north, east, timeStart, timeEnd;
-
-var mapSearchGEOSS;
-var drawControlGEOSS;
-var boxLayerGEOSS = null;
+var whatSBA = "", whatKEYS, south, west, north, east, timeStart, timeEnd;
 
 var discoverPages, numKML, numKMZ, numJPEG, numPNG, numGEOTIFF, numTIFF, numGML, numJPG, numTIF, numBMP, usefulURLS, numVector, numWMS;
 
@@ -74,15 +70,12 @@ function expandNodeResults(pageOne, resultSet) {
 
 function setSearchOptions(start, index, resultsPerPage) {
     //map extent
-    if (boxLayerGEOSS != null) {
-		if (boxLayerGEOSS.getDataExtent() != null) {		
-			extentGEOSS = boxLayerGEOSS.getDataExtent().transform(WGS84_google_mercator, WGS84).toString();
-			var parseGEOSSextent = extentGEOSS.split(',');
-			south = Number(parseGEOSSextent[1]);
-			west = Number(parseGEOSSextent[0]);
-			north = Number(parseGEOSSextent[3]);
-			east = Number(parseGEOSSextent[2]);
-		}
+    if (vector.getSource().getFeatures().length > 0) {				
+		var extentGEOSS = ol.proj.transformExtent(vector.getSource().getExtent(), 'EPSG:3857', 'EPSG:4326');			
+		south = Number(extentGEOSS[1]);
+		west = Number(extentGEOSS[0]);
+		north = Number(extentGEOSS[3]);
+		east = Number(extentGEOSS[2]);		
 	}
     else {
     	south = -90;
@@ -574,48 +567,19 @@ function initSearchMapGEOSS() {
 	document.getElementById('drawExtentButtonGEOSS').disabled = true;
 	
 	//Initialize map
-	mapSearchGEOSS = new OpenLayers.Map('mapSearchExtentGEOSS');
+	mapFilter = new ol.Map({
+        layers: [base, vector],
+        target: 'mapSearchExtentGEOSS',
+        view: new ol.View({
+          center: center,
+          zoom: 6
+        })
+    });
 	
-	var ghyb = new OpenLayers.Layer.Google("Google Hybrid",
-            {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 15, visibility: false}
-            );
-	mapSearchGEOSS.addLayers([ghyb]);
-	mapSearchGEOSS.setBaseLayer(ghyb);
-	
-	mapSearchGEOSS.setCenter(new OpenLayers.LonLat(23.72275, 37.92253).transform(new OpenLayers.Projection("EPSG:4326"), mapSearchGEOSS.getProjectionObject()), 6, true, true);
-	mapSearchGEOSS.projection = WGS84_google_mercator;
-	mapSearchGEOSS.displayProjection = WGS84;
-	
-	//Add draw box contols
-	boxLayerGEOSS = new OpenLayers.Layer.Vector("Box layer");
-	mapSearchGEOSS.addLayer(boxLayerGEOSS);
-	drawControlGEOSS = new OpenLayers.Control.DrawFeature(boxLayerGEOSS,
-	                                                     OpenLayers.Handler.RegularPolygon, 
-	                                                     { 
-															eventListeners: {'featureadded': newPolygonAddedGEOSS},
-											      			handlerOptions: {
-											      				sides: 4,
-										                        irregular: true
-											      			}
-	                                                     });
-	mapSearchGEOSS.addControl(drawControlGEOSS);
-}
-
-function enableControlGEOSS() {
-	drawControlGEOSS.activate();
-	//document.getElementById('enableControlDrawGEOSS').style.border = 'solid red';
-	document.getElementById('enableControlDrawGEOSS').style.borderColor = 'red';
-}
-
-function newPolygonAddedGEOSS() {
-	drawControlGEOSS.deactivate();
-	//document.getElementById('enableControlDrawGEOSS').style.border = 'none';
-	document.getElementById('enableControlDrawGEOSS').style.borderColor = '#ccc';
-}
-
-function resetPolygonBoxGEOSS() {
-	boxLayerGEOSS.removeAllFeatures();
-	drawControlGEOSS.deactivate();
+	document.getElementsByClassName('ol-zoom')[0].style.top = '10px';
+	document.getElementsByClassName('ol-zoom')[0].style.left = '10px';
+   
+    addInteraction();
 }
 
 function resetGEOSS() {
@@ -628,7 +592,8 @@ function resetGEOSS() {
 	}
 	
 	document.getElementById('GEOSSPortalSearchForm').reset();
-	boxLayerGEOSS = null;
+	
+	vector.getSource().clear();
 }
 
 function selectSBA(id) {

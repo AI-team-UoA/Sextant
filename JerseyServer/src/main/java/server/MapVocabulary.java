@@ -50,6 +50,7 @@ public interface MapVocabulary  {
 	public static final URI IS_TEMPORAL_LAYER	= new MemURI(null, NAMESPACE, "isTemporalLayer");
 	
 	public static final URI HASIMAGEBOX  		= new MemURI(null, NAMESPACE, "hasImageBox");
+	public static final URI HASLAYERTYPE  		= new MemURI(null, NAMESPACE, "hasLayerType");
 	
 	public static final URI HASTITLE  			= new MemURI(null, NAMESPACE, "hasTitle");
 	public static final URI HASCREATOR  		= new MemURI(null, NAMESPACE, "hasCreator");

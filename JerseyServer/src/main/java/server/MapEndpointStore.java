@@ -714,6 +714,15 @@ public class MapEndpointStore {
 				} else {
 					layerInfo.add(null);
 				}
+				
+				String query11 = "SELECT ?x WHERE { "+ graph + "{<"+ layerId +"> <" + MapVocabulary.HASLAYERTYPE.toString() + "> ?x}}";
+				results = getResultFromQuery(endpoint_query, query11, "strabon");
+				if (results.size()!=0) {
+					layerInfo.add(results.get(0));
+					
+				} else {
+					layerInfo.add(null);
+				}
 							
 			}
 			else{

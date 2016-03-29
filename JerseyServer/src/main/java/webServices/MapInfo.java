@@ -17,6 +17,7 @@ public class MapInfo {
 	public String iconScale;
 	public String isTemporal;
 	public String imageBox;
+	public String type;
 	
 	public String chartType;
 	public String chartResults;
@@ -50,6 +51,7 @@ public class MapInfo {
 		this.iconScale = v.get(7);
 		this.isTemporal = v.get(8);
 		this.imageBox = v.get(9);
+		this.type = v.get(10);
 	}
 	
 	public void print() {
@@ -63,5 +65,6 @@ public class MapInfo {
 		System.out.println(this.iconScale);
 		System.out.println(this.isTemporal);
 		System.out.println(this.imageBox);
+		System.out.println(this.type);
 	}
 }

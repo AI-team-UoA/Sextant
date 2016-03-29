@@ -20,12 +20,13 @@ body {
 
 #coordinates {
 	position: absolute;
-	top: 70px;
-	left: 120px;
+	top: 60px;
+	left: 60px;
 	z-index: 1;
 	color: #FFCC66;
 	font-size: 16px;
 	font-weight: bold;
+	width: 200px
 }
 
 #userDefinedData {
@@ -345,7 +346,7 @@ body {
 	border-radius: 15px 15px 0px 0px;
     background: rgba(255, 255, 255, 0.6);
     height: 36px;
-    width: 370px;
+    width: 390px;
     text-align: center;
     border-style: solid;
     border-width: 1px;
@@ -682,4 +683,67 @@ img.evtIcon {
 #currentTime {
 	padding-top: 6px;
 	font-size: 15px;		
+}
+
+.ol-zoom {
+	top: 70px;
+	left: 20px;
+}
+
+.ol-popup {
+        position: absolute;
+        background-color: white;
+        border-radius: 5px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -200px;
+        width: 400px;
+        height: 220px;
+}
+.ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+}
+.ol-popup:after {
+        border-top-color: white;
+        border-width: 10px;
+        left: 200px;
+        margin-left: -10px;
+}
+.ol-popup:before {
+        border-top-color: #cccccc;
+        border-width: 11px;
+        left: 200px;
+        margin-left: -11px;
+}
+.ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 6px;
+        right: 10px;
+}
+.ol-popup-closer:after {
+        content: "✖";
+}
+      
+#popup-content {
+	padding: 5%;
+	overflow: scroll;
+	width: 90%;
+	height: 85%;
+}
+
+#popupTitle {
+	width: auto;
+	font-size: 18px; 
+	font-weight: bold;
+	padding: auto;
+	color: #008ae6;
+	margin-left: 20px;
+	margin-top: 10px;
 }

@@ -708,14 +708,22 @@ function getBBOX(place, format) {
 }
 
 function calculateBBOX(res) {
-	var bounds = new OpenLayers.Bounds();
+	var bounds = null;
+	var first = true;
 	res.forEach(function(i) {
 		if (typeof(i.geometry) !== "undefined") {
 			var coords = i.geometry.replace("BOX(", "").replace(")", "");
 			var parse1 = coords.split(',');
 			var pointsLL = parse1[0].split(' ');
 			var pointsUR = parse1[1].split(' ');
-			bounds.extend(new OpenLayers.Bounds(pointsLL[0], pointsLL[1], pointsUR[0], pointsUR[1]));
+			
+			if (first) {
+				bounds = [Number(pointsLL[0]), Number(pointsLL[1]), Number(pointsUR[0]), Number(pointsUR[1])];
+				first = false;
+			}
+			else {
+				ol.extent.extend(bounds, [Number(pointsLL[0]), Number(pointsLL[1]), Number(pointsUR[0]), Number(pointsUR[1])]);
+			}
 		}
 	});
 	
@@ -723,11 +731,11 @@ function calculateBBOX(res) {
 }
 
 function boundsToWKT(placeBBOX) {
-	return '<http://www.opengis.net/def/crs/EPSG/0/4326> POLYGON((' + placeBBOX.left + ' ' + placeBBOX.bottom + ', ' +
-									  placeBBOX.right + ' ' + placeBBOX.bottom + ', ' +
-									  placeBBOX.right + ' ' + placeBBOX.top + ', ' +
-									  placeBBOX.left + ' ' + placeBBOX.top + ', ' +
-									  placeBBOX.left + ' ' + placeBBOX.bottom + '))';
+	return '<http://www.opengis.net/def/crs/EPSG/0/4326> POLYGON((' + placeBBOX[0] + ' ' + placeBBOX[1] + ', ' +
+									  placeBBOX[2] + ' ' + placeBBOX[1] + ', ' +
+									  placeBBOX[2] + ' ' + placeBBOX[3] + ', ' +
+									  placeBBOX[0] + ' ' + placeBBOX[3] + ', ' +
+									  placeBBOX[0] + ' ' + placeBBOX[1] + '))';
 }
 
 function enableRegionSelect() {

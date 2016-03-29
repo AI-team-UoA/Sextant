@@ -12,135 +12,62 @@ var currentColor = 0;
 //Temp variable that gets the position of the layer we will change in the mapLayers table
 var pos = -1;
 function showStylesForm(position){
-	//document.getElementById('changeKmlStyles').style.display = 'block';
 	pos = position;
 }
 
 function changeStyles() {
 	//Get the values from the form
-	var iconUrl = $('#iconUrl').val();
-    var iconSize = $('#iconSize').val();
-    var strokeColor = '#' + $('#strokeColorID').val();
-    var strokeWidth = $('#strokeWidth').val();
-    var fillColor = '#' + $('#fillColorID').val();
+	var iconUrl = ( ($('#iconUrl').val() != "") ? $('#iconUrl').val() : "./assets/images/map-pin-md.png");
+    var iconSize = ( ($('#iconSize').val() != "") ? $('#iconSize').val() : 5);
+    var strokeColor = ( ($('#strokeColorID').val() != "") ? ('#' + $('#strokeColorID').val()) : '#ff9900');
+    var strokeWidth = ( ($('#strokeWidth').val() != "") ? $('#strokeWidth').val() : 1);
+    var fillColor = ( ($('#fillColorID').val() != "") ? ('#' + $('#fillColorID').val()) : '#ff9900');
     
     var localFile = document.getElementById('iconName').files[0];
     //Create a URL for the localfile
     if (localFile) {
     	var fileURL = window.URL.createObjectURL(localFile);
+    	iconUrl = fileURL;
     }
     
-    //First get the path from user. If localfile is chosen, get its url instead.
-    var urlTemp = iconUrl;
-    if(localFile) {
-    	urlTemp = fileURL;
-    }
-        
-    //Create style and set default values for emplty elements
-    var myStyles = new OpenLayers.Style({
-        strokeColor: "${strokeColor}",
-        strokeWidth: ( (strokeWidth != "") ? strokeWidth : 1),
-        fillColor: "${fillColor}",
-        pointRadius: "${pointRadius}",
-        externalGraphic: "${externalGraphic}",
-        graphicOpacity: 1,
-        fillOpacity: 0.5,
-        strokeOpacity: 1,
-        fontColor: "#CC0099",
-		fontOpacity: 1,
-		fontSize: "25px",
-		fontWeight: "bold",
-		label: "${label}"
-    },
-    {
-    	context: {
-			label: function(feature) {
-				if (typeof feature.cluster != 'undefined') {
-					if(feature.cluster.length > 1) {
-						return feature.cluster ? feature.cluster.length : "";  
-					}
-				}
-				else {
-					return "";
-				}
-			},
-			pointRadius: function(feature) {
-				if (typeof feature.cluster != 'undefined') {
-			    	if(feature.cluster.length > 1) {
-			            return (feature.cluster.length/3)+20; 
-			    	}
-				}
-				else {
-					return ( (iconSize != "") ? iconSize : 20);
-				}
-			},
-			fillColor: function(feature) {
-				if (typeof feature.cluster != 'undefined') {
-			    	if(feature.cluster.length > 1) {
-			            return '#66FFCC'; 
-			    	}
-				}
-				else {
-					return ( (fillColor != "#") ? fillColor : "#FFB414");
-				}
-			},
-			externalGraphic: function(feature) {
-				if (typeof feature.cluster != 'undefined') {
-			    	if(feature.cluster.length > 1) {
-			            return ""; 
-			    	}
-				}
-				else {
-					return ( (urlTemp != "") ? urlTemp : "./assets/images/map-pin-md.png");
-				}
-			},
-			strokeColor: function(feature) {
-				if (typeof feature.cluster != 'undefined') {
-			    	if(feature.cluster.length > 1) {
-			            return '#25375C'; 
-			    	}
-				}
-				else {
-					return ( (strokeColor != "#") ? strokeColor : "#FFB414");
-				}
-			}		
-    }
+    var newStyle = new ol.style.Style({
+    	stroke: new ol.style.Stroke({
+            color: strokeColor,
+            width: strokeWidth
+        }),
+        fill: new ol.style.Fill({
+            color: hex2rgb(fillColor, 0.4)
+        }),
+        image: new ol.style.Circle({
+    	    fill: new ol.style.Fill({
+    	      color: hex2rgb(fillColor, 0.4)
+    	    }),
+    	    radius: iconSize,
+    	    stroke: new ol.style.Stroke({
+    	      color: strokeColor,
+    	      width: strokeWidth
+    	    })
+    	})
     });
     
-    document.getElementById('alertMsgStyleLayerWait').style.display = 'block';
-    showSpinner(colorSpin);
-    
-    var thesi = pos;
-    var name = mapLayers[thesi].name;
- 
-    var sm = new OpenLayers.StyleMap({"default": myStyles, "select":clickFeatureStyle});
-    var temp = map.getLayersByName(name);
-    temp[0].style = null;
-    temp[0].styleMap = sm;
-    temp[0].redraw();
+    map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == mapLayers[pos].name) {
+    		layer.getSource().setStyle(newStyle);
+    	}
+    });
     
     //Update the layer colors
-    for (var i=0; i<mapLayers.length; i++) {
-		if (mapLayers[i].name === name) {
-			if (fillColor != '#') {mapLayers[i].fillColor = fillColor;}
-			if (strokeColor != '#') {mapLayers[i].strokeColor = strokeColor;}
-			if (iconUrl != '' && !localFile) {mapLayers[i].icon = iconUrl;}
-			if (iconSize != '') {mapLayers[i].iconSize = iconSize;}
-			
-			break;
-		}
-	}
-    
+	mapLayers[pos].fillColor = fillColor;
+	mapLayers[pos].strokeColor = strokeColor;
+	mapLayers[pos].icon = iconUrl;
+	mapLayers[pos].iconSize = iconSize;
+			   
     //Update timeline colors
-    timelineSetColors(name, urlTemp, fillColor);
+    timelineSetColors(mapLayers[pos].name, iconUrl, fillColor);
     
     //Remove this layer from Color panel if it has entries, and hide the color panel
-    removeFromColorPanel(name, thesi);
-    closeColorPanel();
-    
-	showMap();
-	setTimeout(function() {$('#alertMsgStyleLayerWait').fadeOut('slow');}, fadeTime);
-	hideSpinner();	 
+    removeFromColorPanel(mapLayers[pos].name, pos);
+    closeColorPanel();	 
     
     //Reset form data
     document.getElementById('changeKmlStyles').reset();
@@ -152,48 +79,87 @@ function changeStyles() {
 /**
  * Change styles of features in KML according to a value in a field
  */
+var styleFilters = [];
 function styleFeatures() {
 	var element = document.getElementById('dynamicData');
 	var attrName = element.options[element.selectedIndex].value;
 	var startInterval, endInterval;
-	var allRules = [];
 	
 	var dataElement = document.getElementById('dataType');
 	var dataType = dataElement.options[dataElement.selectedIndex].value;
-    
-	//Removed the filter to make it a general rule
-	var globalRule = new OpenLayers.Rule ({
-		symbolizer: {
-			strokeColor : "#A0A0A0",
-			fillColor : "#A0A0A0",
-			strokeWidth: 1,
-			iconSize : 10,
-			urlTemp : "./assets/images/map-pin-md.png",
-			graphicOpacity: 1,
-			fillOpacity: 0.5,
-	        strokeOpacity: 1
-		}
-	});	
-	allRules.push(globalRule);   
 
-    var thesi = pos;
-    var name = mapLayers[thesi].name;
-	
-    document.getElementById('alertMsgStyleLayerWait').style.display = 'block';
-    showSpinner(colorSpin);
+    var name = mapLayers[pos].name;	   
 	
 	//Delete the feature from the color panel if it exist
-	//removeDuplicateFeature(attrName, name);
-	removeFromColorPanel(name, thesi);
+	removeFromColorPanel(name, pos);
 	
 	//Create the layerInfo in the color panel
 	addColorPanel(attrName, -1, 0, 0, name);
 	
 	//Create the rules according to input form
+	styleFilters = [];
 	for (var i=0; i<=currentColor; i++) {
 		startInterval = document.getElementById('start'+i).value;
 		endInterval = document.getElementById('end'+i).value;
+		var selectedColor = rgb2hex(document.getElementById('color'+i).style.backgroundColor);
 		
+		var newFilter = new styleFilter(startInterval, endInterval, dataType, selectedColor, attrName);
+		styleFilters.push(newFilter);
+		
+		//add color to colorPanel
+		addColorPanel(attrName, i, startInterval, endInterval, name);		
+	}
+	
+    //Update the layer colors to default. This colorization is not saved
+	mapLayers[pos].fillColor = '#ff9900';
+	mapLayers[pos].strokeColor = '#ff9900';
+	mapLayers[pos].icon = './assets/images/map-pin-md.png';
+	mapLayers[pos].iconSize = 10;
+	
+	//Apply the default style to the layer
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == mapLayers[pos].name) {
+    		layer.getSource().setStyle(customStyles);
+    	}
+    });
+	
+    //Reset form data
+    document.getElementById('changeKmlFeaturesStyles').reset();
+    removeIntervals();
+    
+    document.getElementById('colorPanel').style.display = 'block';
+    
+    //Reset the temp variable 
+    pos = -1;	 
+}
+
+function customStyles(feature, resolution) {
+	var defaultFeatureStyle = new ol.style.Style({
+		stroke: new ol.style.Stroke({
+	        color: [160, 160, 160, 1],
+	        width: 1
+	    }),
+	    fill: new ol.style.Fill({
+	        color: [160, 160, 160, 0.4]
+	    }),
+	    image: new ol.style.Circle({
+    	    fill: new ol.style.Fill({
+    	      color: [160, 160, 160, 0.4]
+    	    }),
+    	    radius: 5,
+    	    stroke: new ol.style.Stroke({
+    	      color: [160, 160, 160, 1],
+    	      width: 1
+    	    })
+    	})
+	});
+	
+	for (var i=0; i<styleFilters.length; i++) {
+		var startInterval = styleFilters[i].startInterval;
+		var endInterval = styleFilters[i].endInterval;
+		var selectedColor = styleFilters[i].color;
+		var attrName = styleFilters[i].attrName;
+		var dataType = styleFilters[i].dataType;
 		var s, e;
 		
 		//If data type is number we do number comparison, else string comparison
@@ -206,70 +172,31 @@ function styleFeatures() {
 			e = endInterval.toString();
 		}
 		
-		var myRule = new OpenLayers.Rule ({
-			filter: new OpenLayers.Filter.Logical ({
-				type: OpenLayers.Filter.Logical.AND,
-				filters: [ 
-				           new OpenLayers.Filter.Comparison ({
-				        	   type: OpenLayers.Filter.Comparison.GREATER_THAN,
-				        	   property: attrName,
-				        	   value: s
-						   }),
-						   new OpenLayers.Filter.Comparison ({
-				        	   type: OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO,
-				        	   property: attrName,
-				        	   value: e
-						   })
-				         ]
-			}),
-			symbolizer: {
-				fillColor: rgb2hex(document.getElementById('color'+i).style.backgroundColor),
-				strokeColor: rgb2hex(document.getElementById('color'+i).style.backgroundColor),
-				strokeWidth: 1,
-				iconSize : 20,
-				fillOpacity: 0.5,
-		        strokeOpacity: 1
-			}
-		});
-		
-		allRules.push(myRule);
-		
-		//add color to colorPanel
-		addColorPanel(attrName, i, startInterval, endInterval, name);
-		
+		if (feature.get(attrName) > s && feature.get(attrName) <= e) {
+			var newFeatureStyle = new ol.style.Style({
+				stroke: new ol.style.Stroke({
+			        color: selectedColor,
+			        width: 1
+			    }),
+			    fill: new ol.style.Fill({
+			        color: hex2rgb(selectedColor, 0.4)
+			    }),
+			    image: new ol.style.Circle({
+		    	    fill: new ol.style.Fill({
+		    	      color: hex2rgb(selectedColor, 0.4)
+		    	    }),
+		    	    radius: 5,
+		    	    stroke: new ol.style.Stroke({
+		    	      color: selectedColor,
+		    	      width: 1
+		    	    })
+		    	})
+			});
+			return [newFeatureStyle];
+		}		
 	}
-	
-	//add the rule to the style
-	var temp = map.getLayersByName(name);
-	temp[0].styleMap.styles.default.addRules(allRules);
-	temp[0].redraw();
-	
-    
-    //Update the layer colors to default. This colorization is not saved
-    for (var i=0; i<mapLayers.length; i++) {
-		if (mapLayers[i].name === name) {
-			mapLayers[i].fillColor = '#FFB414';
-			mapLayers[i].strokeColor = '#FFB414';
-			mapLayers[i].icon = './assets/images/map-pin-md.png';
-			mapLayers[i].iconSize = 20;
-			
-			break;
-		}
-	}
-	
-    showMap();
-	setTimeout(function() {$('#alertMsgStyleLayerWait').fadeOut('slow');}, fadeTime);
-	hideSpinner();
-	
-    //Reset form data
-    document.getElementById('changeKmlFeaturesStyles').reset();
-    removeIntervals();
-    
-    document.getElementById('colorPanel').style.display = 'block';
-    
-    //Reset the temp variable 
-    pos = -1;
-	 
+		
+	return [defaultFeatureStyle];
 }
 
 /**
@@ -504,7 +431,39 @@ function rgb2hex(rgb) {
     return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
+function hex2rgb(hex, opacity) {
+    var h=hex.replace('#', '');
+    h =  h.match(new RegExp('(.{'+h.length/3+'})', 'g'));
 
+    for(var i=0; i<h.length; i++)
+        h[i] = parseInt(h[i].length==1? h[i]+h[i]:h[i], 16);
+
+    if (typeof opacity != 'undefined')  h.push(opacity);
+
+    return h;
+}
+
+/**
+ * Create the contents of KML style feature modal
+ */
+function createModalBody(featureNames) {
+	var divRef = document.getElementById('dynamicData');
+	
+	//Delete old values from dropdown list
+	while (divRef.firstChild) {
+		divRef.removeChild(divRef.firstChild);
+	}
+	
+	var name = featureNames.split(",");	
+	for (var i=0; i<name.length; i++) {
+		var element = document.createElement("option");
+		element.value = name[i];
+		element.innerHTML = name[i];
+		divRef.appendChild(element);
+	}   
+	
+	document.getElementById('color0').style.backgroundColor = colorTable[0];
+}
 
 
 

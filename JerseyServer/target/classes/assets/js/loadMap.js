@@ -24,8 +24,6 @@ function addMapFromId() {
 		
 		getMapInfo(id, parts[0], parts[1], parts[2], port);
 	}
-		
-	refreshMap();
 	
 	//Map metadata
 	document.getElementById('infoMapTitle').innerHTML = '';
@@ -98,10 +96,11 @@ function parseMapInformation(results, status, jqXHR) {
 		document.getElementById('infoTheme').innerHTML = parseMapInfo[3];
 		document.getElementById('infoExtent').value = parseMapInfo[6];
 		
-		userDataUrl = parseMapInfo[7].concat(globalId).concat('userInfo.kml');
+		//userDataUrl = parseMapInfo[7].concat(globalId).concat('userInfo.kml');
 	}
 	
 	//Read the features from the userInfo.kml file and add them on the userLayer
+	/*
 	var tempLayer = new OpenLayers.Layer.Vector('tempLayer', {
         projection: map.displayProjection,
         rendererOptions: { zIndexing: true },
@@ -148,7 +147,7 @@ function parseMapInformation(results, status, jqXHR) {
 		loadMapTrigger = 0;
 		map.removeLayer(tempLayer, false);
      });
-
+	*/
 }
 
 function parseResults(results, status, jqXHR) {
@@ -173,6 +172,10 @@ function parseResults(results, status, jqXHR) {
 				num ++;
 			}
 			
+			
+			var layerType = $(this).find('type').text();
+			var parseType = layerType.split(',');
+			
 			var isTemp = $(this).find('isTemporal').text();
 			if (isTemp === 'false') {
 				isTemp = false;
@@ -184,7 +187,14 @@ function parseResults(results, status, jqXHR) {
 			var strokeColor = $(this).find('polylineColor').text();
 			
 			//Convert kmlColors to html
-			fillColor = convertColor(fillColor);
+			if (parseType[0] != 'wms') {
+				fillColor = convertColor(fillColor);
+			}
+			else {
+				if (fillColor == "#FFB414"){
+					fillColor = '';
+				}
+			}
 			strokeColor = convertColor(strokeColor);
 						
 			var iconUrl = $(this).find('iconUri').text();
@@ -194,49 +204,77 @@ function parseResults(results, status, jqXHR) {
 			}
 			
 			var imageBox = $(this).find('imageBox').text();
-			
-			//Create style and set default values for emplty elements
-		    var myStyles = new OpenLayers.StyleMap({ 'default': {
-		        strokeColor: ( (strokeColor != "") ? strokeColor : "#FFB414"),
-		        strokeWidth: 1,
-		        fillColor: ( (fillColor != "") ? fillColor : "#FFB414"),
-		        pointRadius: ( (iconSize != "") ? iconSize : 20),
-		        externalGraphic: ( (iconUrl != "") ? iconUrl : "./assets/images/map-pin-md.png"),
-		        graphicOpacity: 1,
-		        fillOpacity: 0.3,
-		        strokeOpacity: 1
-		        }
+						
+			//Create style and set default values for emplty elements		    
+		    var myStyles = new ol.style.Style({
+		    	stroke: new ol.style.Stroke({
+		            color: ( (strokeColor != "") ? strokeColor : [255, 153, 0, 1]),
+		            width: 1
+		        }),
+		        fill: new ol.style.Fill({
+		            color: ( (fillColor != "") ? hex2rgb(fillColor, 0.4) : [255, 153, 0, 0.4])
+		        }),
+		        image: new ol.style.Circle({
+		    	    fill: new ol.style.Fill({
+		    	      color: ( (fillColor != "") ? hex2rgb(fillColor, 0.4) : [255, 153, 0, 0.4])
+		    	    }),
+		    	    radius: 5,
+		    	    stroke: new ol.style.Stroke({
+		    	      color: ( (strokeColor != "") ? strokeColor : [255, 153, 0, 1]),
+		    	      width: 1
+		    	    })
+		    	})
 		    });
 		    
 		    if (imageBox === null || imageBox === "") {	    	
-		    	//load kml, gml or wms file
-		    	if (uri.substring(uri.length-3, uri.length) === 'kml') {
+		    	//load kml, gml, json or wms file
+		    	var type = null;
+		    	if (layerType == "") {
+		    		//Old maps. The layer type is not available
+		    		type = uri.substring(uri.lastIndexOf(".")+1, uri.length);
+		    	}
+		    	else {
+		    		//New maps that have the layer type info
+		    		type = layerType;
+		    	}
+		    	
+		    	if (type == 'kml') {
 		    		if (parseOrigin[0] == server) {
 		    			//Same origin uri
 		    			addLayer(uri, name, isTemp, "kml", query, endpoint, globalId, null, null, myStyles, null, null);
 		    		}
 		    		else {
-		    			//Different origin uri, we must downloda file to server
+		    			//Different origin uri, we must download file to server
 		    			addLayer(uri, name, isTemp, "kml", query, endpoint, globalId, null, uri, myStyles, null, null);
 		    		}
 		    	} 
-		    	else if (uri.substring(uri.length-3, uri.length) === 'gml' || uri.substring(uri.length-3, uri.length) === 'xml'){
+		    	else if (type == 'gml' || type == 'xml'){
 		    		if (parseOrigin[0] == server) {
 		    			//Same origin uri
 		    			addLayer(uri, name, isTemp, "gml", query, endpoint, globalId, null, null, myStyles, null, null);
 		    		}
 		    		else {
-		    			//Different origin uri, we must downloda file to server
+		    			//Different origin uri, we must download file to server
 		    			addLayer(uri, name, isTemp, "gml", query, endpoint, globalId, null, uri, myStyles, null, null);
 		    		}
 		    	}
+		    	else if (type == 'geojson' || type == 'topojson') {
+		    		if (parseOrigin[0] == server) {
+		    			//Same origin uri
+		    			addLayer(uri, name, isTemp, type, query, endpoint, globalId, null, null, myStyles, null, null);
+		    		}
+		    		else {
+		    			//Different origin uri, we must download file to server
+		    			addLayer(uri, name, isTemp, type, query, endpoint, globalId, null, uri, myStyles, null, null);
+		    		}
+		    	}
 		    	else {
-		    		var parseWMS_URI = uri.split('#');		    		
-	    			addLayer(parseWMS_URI[0], name, isTemp, "wms", query, endpoint, globalId, null, parseWMS_URI[1], null, null, null);
+		    		var parseWMS_URI = uri.split('#');			    		
+	    			addLayer(parseWMS_URI[0], name, isTemp, "wms", query, endpoint, globalId, null, [parseWMS_URI[1], parseType[1], parseType[2]], fillColor, null, null);
 		    	}
 		    	
 		    	for (var i=0; i<mapLayers.length; i++) {
-		    		if (mapLayers[i].name === name && mapLayers[i].type != "wms") {
+		    		if (mapLayers[i].name === name && mapLayers[i].type.substring(0, 3) != "wms") {
 		    			mapLayers[i].fillColor = fillColor;
 		    			mapLayers[i].strokeColor = strokeColor;
 		    			mapLayers[i].icon = iconUrl;
@@ -252,8 +290,8 @@ function parseResults(results, status, jqXHR) {
 		    	var arr = imageBox.split(',');
 		    	var w = Number(arr[0].substring(2, arr[0].length));
 		    	var h = Number(arr[1].substring(2, arr[1].length));
-		    	var size = new OpenLayers.Size(w, h);
-		    	var box = new OpenLayers.Bounds(Number(arr[2]), Number(arr[3]), Number(arr[4]), Number(arr[5]));
+		    	var size = [w, h];
+		    	var box = [Number(arr[2]), Number(arr[3]), Number(arr[4]), Number(arr[5])];
 		    	
 		    	if (parseOrigin[0] == server) {
 	    			//Same origin uri

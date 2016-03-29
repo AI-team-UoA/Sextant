@@ -175,13 +175,6 @@ function resetForm() {
 /**
  * Pose new Query functions
  */
-function showQueryDiv() {
-	document.getElementById('queryDiv').style.display = 'block';
-}
-function hideQueryDiv() {
-	//document.getElementById('queryDiv').style.display = 'none';
-}
-
 function runQuery() {
 	var endpointURI = document.getElementById('endpointUrlQuery').value;
 	var portValue = document.getElementById('loadEndpointPort').value;
@@ -310,7 +303,7 @@ function uploadOS(results, status, jqXHR) {
 	hideSpinner();
     setTimeout(function() {$('#alertMsgServerWait').fadeOut('slow');}, fadeTime);
     
-  //parse results
+    //parse results
     var parseResultsLayer = results.split('\$');    
     var endpointURI = 'http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql';
     

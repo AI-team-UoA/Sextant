@@ -11,47 +11,19 @@
 /**
  *  OpenLayers map
  */
-var map, mapExtent;
+var map;
 
 /**
  * Shared control among layers for selecting features
  */
-var control, mouseControl, highlightCtrl, selectCtrl, infoWMS = [];
+var control, mouseControl, infoWMS = [];
 
-/**
- * Calculated bounding box containing the extent of all layers
- */
-//var allLayersBounds = new OpenLayers.Bounds();
-
-/**
- * Number of layers when initializing the map
- */
-var layersInitialNum = 0;
-
-/**
- * Interval between refreshing layers
- */
-var refreshInterval = 1000;
-
-/**
- * No proxy is used for cross-realm communication
- */
-OpenLayers.ProxyHost = null;
 
 /**
  * Table with the info of all layers
  */
 var mapLayers = [];
 
-/**
- * Variable that shows if we run on timemap (1), or on simplemap (0)
- */
-var isTimeMap = 0;
-
-/**
- * Variable that keeps the number of temporal layers on the map
- */
-var tempLayersNum = 0;
 
 /**
  * Variable that controls the fadeout time of messages in tha application (in msecs)
@@ -85,145 +57,272 @@ var rootURL = 'http://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';
 var parseRootURL = arrHost[0].split(':');
 var server = parseRootURL[0];
 
-//World Geodetic System 1984 projection (lon/lat)
-var WGS84 = new OpenLayers.Projection("EPSG:4326");
-
-//WGS84 Google Mercator projection (meters)
-var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-
 var colorSpin = '#E8EFF5';
 var colorSpinDescribe = '#7E7E7E';
 
 /**
- * The three base layers for the map
+ * The two base layers for the map
  */
-var gsat = new OpenLayers.Layer.Google(
-	        "Google Satellite",
-	        {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22, isBaseLayer:true}
-    	);
-var gmap = new OpenLayers.Layer.Google(
-	        "Google Streets",
-	        {numZoomLevels: 20}
-	    );
-var ghyb = new OpenLayers.Layer.Google(
-	        "Google Hybrid",
-	        {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
-    	);
-
-var lonLat;
-
-var clickFeatureStyle = new OpenLayers.Style({
-    strokeColor: "blue",
-    strokeWidth: 1,
-    fillColor: "blue",
-    fillOpacity: 0.4,
-    strokeOpacity: 1
+var bingMapsKey = 'AviLmGQOP91G3k-bQTgx6ig4JXKXWTKRyuWJr0UALdtJ_PzBtOZo_Bv9_xWRyPYZ';
+//bingMapsKey = null;
+var bingMap = new ol.layer.Tile({
+    preload: Infinity,
+    source: new ol.source.BingMaps({
+      key: bingMapsKey,
+      imagerySet: 'Aerial',
+    })
 });
 
-var currentStyle = null;
+var baseOSM = new ol.layer.Tile({
+    preload: Infinity,
+    source: new ol.source.OSM()
+});
+
+
+/**
+ * Default style for vector layers
+ */
+var defaultVectorStyle = new ol.style.Style({
+	stroke: new ol.style.Stroke({
+        color: [255, 153, 0, 1],
+        width: 1
+    }),
+    fill: new ol.style.Fill({
+        color: [255, 153, 0, 0.4]
+    }),/*
+    image: new ol.style.Icon({
+    	src: "./assets/images/map-pin-md.png",
+    	size: 10
+    })*/
+	image: new ol.style.Circle({
+	    fill: new ol.style.Fill({
+	      color: [255, 153, 0, 0.4]
+	    }),
+	    radius: 5,
+	    stroke: new ol.style.Stroke({
+	      color: [255, 153, 0, 1],
+	      width: 1
+	    })
+	})
+});
+
+/**
+ * Style features when we click them on the map
+ */
+var clickFeatureStyle = new ol.style.Style({
+	stroke: new ol.style.Stroke({
+        color: [0, 0, 255, 1],
+        width: 1
+    }),
+    fill: new ol.style.Fill({
+        color: [0, 0, 255, 0.4]
+    }),
+    image: new ol.style.Circle({
+	    fill: new ol.style.Fill({
+	      color: [0, 0, 255, 0.4]
+	    }),
+	    radius: 5,
+	    stroke: new ol.style.Stroke({
+	      color: [0, 0, 255, 1],
+	      width: 1
+	    })
+	})
+});
+
+var featureOverlay = new ol.layer.Image({
+	title: 'overlayStyle',
+    source: new ol.source.ImageVector({
+      source: new ol.source.Vector(),
+      style: clickFeatureStyle
+    })
+});
+
+/**
+ * OL interaction when we select a feature on the map
+ */
+var mapSelectInterraction = new ol.interaction.Select({style: clickFeatureStyle});
+
+/**
+ * Popups
+ */
+var container, content, closer, overlay;
+
+/**
+ * Map center on load
+ */
+var center = ol.proj.transform([23.631, 38.091], 'EPSG:4326', 'EPSG:3857');
 
 /**
  * Function for initializing the OpenLayers map
  * (called on Window load)
  */
-function initialize(timeMap) {
+function initialize() {
 	if (!map){
 		document.getElementById('tmContainer').style.right = '-3000px';
 		document.getElementById('statsContainer').style.right = '-3000px';
-		isTimeMap = 1;
-			
-		/**
-		 * Create map with new myTimeline
-		 */
-		map = new OpenLayers.Map("map_canvas", {
-								 controls: [new OpenLayers.Control.Zoom({'position': new OpenLayers.Pixel(20,70)}),
-								            new OpenLayers.Control.TouchNavigation()],
-								 layers: [gsat, gmap, ghyb],
-								 projection: 'EPSG:900913',
-								 displayProjection: 'EPSG:4326',
-								 units: 'm',
-								 center: new OpenLayers.LonLat(23.72275, 37.92253).transform('EPSG:4326', 'EPSG:900913'),
-								 zoom: 6
-		});
-		initTimeline();
-	    
-	    mouseControl = new OpenLayers.Control.MousePosition({
-	    	div:document.getElementById("coordinates")
+		
+		mouseControl = new ol.control.MousePosition({
+	        coordinateFormat: ol.coordinate.createStringXY(4),
+	        projection: 'EPSG:4326',
+	        target: document.getElementById('coordinates'),
+	        undefinedHTML: '&nbsp;'
 	    });
-	    map.addControl(mouseControl);
-	    mouseControl.activate();	 
-	    		
-	    layersInitialNum = map.getNumLayers();	 
-	        
-	    //Add draw box contols and add the two layers in the layers table
-	    userLayer = new OpenLayers.Layer.Vector("userInfo");
-		map.addLayers([userLayer]);
 		
-		var tl = new Layer('userInfo', null, false, 'kml', '', '', '#FFB414', '#FFB414', './assets/images/map-pin-md.png', 20, 0, '', '');
-        mapLayers.push(tl);	 
-        addTableRow('userInfo', 'user');          
-			    
-	    control = new OpenLayers.Control.SelectFeature([userLayer]);
-	    map.addControl(control);
-	    control.activate();	                	   
-							
-		// add some handlers for selection/unselection of features in the layer
-		userLayer.events.on({
-			            'featureselected': onFeatureSelect,
-			            'featureunselected': onFeatureUnselect,
-			            'featureadded': userFeatureAdded
-			            });
-		
-		drawControlPoint = new OpenLayers.Control.DrawFeature(userLayer,
-											                OpenLayers.Handler.Point
-											                );
-		drawControlPolygon = new OpenLayers.Control.DrawFeature(userLayer,
-		                                                     OpenLayers.Handler.RegularPolygon, 
-		                                                     { 
-												      			handlerOptions: {
-												      				sides: 4,
-											                        irregular: true
-												      			}
-		                                                     });
-
-		map.addControl(drawControlPoint);
-		map.addControl(drawControlPolygon); 
-		
-		
-		//Hide/Show all layers according to map zoom level
-		map.events.register('zoomend', this, function (event) {
-	        var zLevel = map.getZoom();  
-			var mapZoomLimit = 5;
-
-	        for (var i=0; i<mapLayers.length; i++) {
-	        	var zoomLayer = map.getLayersByName(mapLayers[i].name);
-	        	if( zLevel >= mapZoomLimit  && typeof zoomLayer[0] != 'undefined')
-		        {
-	        		if (document.getElementById("shBox"+mapLayers[i].name).checked) {
-	        			zoomLayer[0].setVisibility(true);
-	        		}
-		        }
-	        	else if( zLevel < mapZoomLimit  && typeof zoomLayer[0] != 'undefined')
-		        {
-	        		zoomLayer[0].setVisibility(false);
-		        }
-	        	
-	        	if ( (mapLayers[i].type == 'kml' || mapLayers[i].type == 'gml') 
-	        			&& typeof zoomLayer[0] != 'undefined' 
-	        			&& mapLayers[i].name != 'userInfo' ) {
-
-	        		if (zoomLayer[0].strategies.length > 1) {
-	        			if (zoomLayer[0].strategies[1].activate()) {
-		        			zoomLayer[0].refresh({force: true});
-	        			}
-	        		}
-	        	}
-	        } 
-	        
-	        if (currentFeature != null || popupWMS != null) {
-		        resetPositionPopup();	        	
+		//Create popups on map click
+		container = document.getElementById('popup');
+	    content = document.getElementById('popupTable');
+	    closer = document.getElementById('popup-closer');
+		overlay = new ol.Overlay(({
+	        element: container,
+	        autoPan: true,
+	        autoPanAnimation: {
+	          duration: 250
 	        }
+	    }));
+		closer.onclick = function() {
+	        overlay.setPosition(undefined);
+	        closer.blur();
+	        //mapSelectInterraction.getFeatures().clear();
+	        clearOverlayFeatures();
+	        return false;
+	    };
+	    
+	    //Drag an drop interaction for KML
+	    /*
+	    var dragAndDropInteractionKML = new ol.interaction.DragAndDrop({
+	        formatConstructors: [
+	          ol.format.KML
+	        ]
 	    });
+	    */
+		var baseLayers = [];
+		if (bingMapsKey != null) {
+			baseLayers.push(bingMap);
+		}
+		else {
+			baseLayers.push(baseOSM);
+		}
+		
+		map = new ol.Map({
+	        layers: baseLayers,
+	        target: 'map_canvas',
+	        renderer: 'webgl',
+	        overlays: [overlay],
+	        view: new ol.View({
+	          center: center,
+	          zoom: 6
+	        }),
+	        //interactions: ol.interaction.defaults().extend([mapSelectInterraction]),
+	        controls: ol.control.defaults().extend([mouseControl])
+	    });
+		map.addLayer(featureOverlay);
+		featureOverlay.setZIndex(5);
+		
+		map.on('singleclick', function(evt) {
+			//Clear selected features
+			clearOverlayFeatures();
+			content.innerHTML = '';
+						
+	        var coordinate = evt.coordinate;
+	        var pixel = evt.pixel;
+	        var features = [];
+	        map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+	          features.push(feature);
+	        });
+	        
+	        //For WMS layers: features.length = 0
+	        if (features.length < 1) {	
+	        	clearPopup();
+	        	
+	        	//Check for WMS layers
+	        	var allWMS = [];
+	        	for (var i=0; i<mapLayers.length; i++) {
+		    		if (mapLayers[i].type.substring(0, 3) == "wms") {
+		    			allWMS.push(mapLayers[i].name);
+		    		}
+		    	}
+	        	
+	        	/**
+	        	 * Get the WMS layer that is on-top in the zIndex. This is either
+	        	 * the layer that has the greater value in the zIndex,
+	        	 * or the last layer in the mapLayers table in case they all
+	        	 * have the same zIndex value.
+	        	 */
+	        	var topLayer = null;
+	        	var topZIndex = -1;
+	        	for (var i=0; i<allWMS.length; i++) {
+	        		map.getLayers().forEach(function(layer) {
+	                	if (layer.get('title') == allWMS[i]) {
+	                		if (layer.getZIndex() >= topZIndex) {
+	                			topZIndex = layer.getZIndex();
+	                			topLayer = layer.get('title');
+	                		}
+	                	}
+	        		});
+	        	}
+	        	
+	        	//Create WMS popup for the top WMS layer
+	        	if (topLayer != null) {
+					var viewResolution = map.getView().getResolution();
+
+	        		map.getLayers().forEach(function(layer) {
+	                	if (layer.get('title') == topLayer) {
+	                		var url = layer.getSource().getGetFeatureInfoUrl(
+	                				coordinate, viewResolution, 'EPSG:3857',
+	    	        	            {'INFO_FORMAT': 'text/html'});
+	                		
+	    	        	    if (url) {
+	    	        	    	$.ajax({
+		                	        type: 'GET',
+		                	        url: url,              
+		                	        timeout: ajaxTimeout,
+		                	        success: parseWMSPopupResults,
+		                	        error: printError,
+		                	        coordinates: coordinate,
+		                	        topLayer: topLayer
+		                	    });	    	        	    	
+	    	        	    }
+	                	}
+	        		});
+	        	}
+	        	
+	        	return;
+	        }
+	        
+	        var overlayFeature = features[0].clone();
+	        featureOverlay.getSource().getSource().addFeature(overlayFeature);
+	        
+	        for (var key in features[0].getProperties()) {
+	    		if (key != 'description' && key != 'geometry' && key != 'name') {
+	    			content.innerHTML += '<tr><td><b>'+key+'</b></td><td>'+features[0].getProperties()[key]+'</td></tr>';
+	    		}
+	    		if (key == 'name') {
+	    			document.getElementById('popupTitle').innerHTML = features[0].getProperties()[key];
+	    		}
+	    	}
+	        	        	        
+	        overlay.setPosition(coordinate);
+	    });
+		
+		/*
+		dragAndDropInteractionKML.on('addfeatures', function(event) {
+	        var vectorSource = new ol.source.Vector({
+	          features: event.features,
+	          format: new ol.format.KML({
+	        	  extractStyles: false
+	          })
+	        });
+	        map.addLayer(new ol.layer.Vector({
+	          source: vectorSource,
+	          style: defaultVectorStyle
+	        }));
+	        
+	        map.getView().fit(vectorSource.getExtent(), (map.getSize()));
+	    });
+	    */
+		
+		initTimeline();
+	    	 	    			              
 	}
 	
 	//Parse host to determine if the client is bind to a server or stand-alone
@@ -243,558 +342,17 @@ function initialize(timeMap) {
     //Initialize AlaSQL
     alasql('CREATE DATABASE gadm28; USE gadm28;'); 
     alasql('CREATE TABLE geodata; SELECT * INTO geodata FROM CSV("./assets/resources/gadm28.csv", {headers:true, separator:";"})');
-
-    currentFeature = null;
     
     document.getElementsByClassName('timeline-band-0')[0].style.backgroundColor = 'rgba(255,255,255,0)';
     document.getElementsByClassName('timeline-band-1')[0].style.backgroundColor = 'rgba(255,255,255,0)';
 }
 
-/**
- * Add a WMS layer on the map
- */
-function addWMSLayer(name, url, layersWMS) {
-	if (name && url && layersWMS) {
-		var layer = new OpenLayers.Layer.WMS(name, url,
-		       {
-		           layers: layersWMS,
-		           transparent: "true",
-		       }, 
-		       {
-		           isBaseLayer: false
-		});
-	
-		// add the new layer to the map and refresh
-		map.addLayer(layer);	
-		
-		var infoWMScontrol = new OpenLayers.Control.WMSGetFeatureInfo({
-            url: url, 
-            title: 'popupWMS',
-            queryVisible: true,
-            eventListeners: {
-                getfeatureinfo: function(event) {
-                	if (popupWMS != null) {
-                		map.removePopup(popupWMS);
-                	}
-                	
-                	popupWMS = new OpenLayers.Popup.Popover(
-                            "customPopup", 
-                            map.getLonLatFromPixel(event.xy),
-                            event.text,
-                            "WMS Feature"
-                    );
-                	addWMSpopup(event);
-                }
-            }
-        });
-        map.addControl(infoWMScontrol);
-        infoWMScontrol.activate();
-        
-        var newWMScontrol = new controlWMS(name, infoWMScontrol);
-        infoWMS.push(newWMScontrol);
-        
-		layer.events.register('loadend', layer, function (evt) {
-	                          	setTimeout(function() {$('#alertMsgLoading').fadeOut('slow');}, fadeTime);	                        	
-	                          	hideSpinner();	   	                          		                                                                                        
-	                          });
-					
-		layer.events.register('removed', layer, function (evt) {	                           	                              
-	                            layer.setVisibility(false);
-	                            layer.display(false);
-	                          });							
-	}
+function clearOverlayFeatures() {
+	featureOverlay.getSource().getSource().clear();
 }
 
 /**
- * Adds the given GeoTIFF file as a new layer on the map.
- * bbox = new OpenLayers.Bounds(UL1, LL2, UR1, UR2)
- * imageSize = new OpenLayers.Size(width, height);
- */
-function addGeoTiffLayer(label, filename, bbox, imageSize) {
-	if (filename && label) {
-		var layer = new OpenLayers.Layer.Image(label, 
-				   filename, 
-				   bbox, 
-				   imageSize, 
-				   {
-				       isBaseLayer: false,
-					   alwaysInRange: true,
-					   opacity: 1.0,
-					   visibility: true
-				   });
-		
-		map.addLayer(layer);
-		
-		map.zoomToExtent(bbox);
-		
-    	/**
-    	 * loadend event for image layers runs every time the map changes
-    	 */
-		// when loaded, calculate the new extent for all layers and zoom to it
-		layer.events.register('loadend', layer, function (evt) {						          	
-						          	setTimeout(function() {$('#alertMsgLoading').fadeOut('slow');}, fadeTime);
-						          		
-						          	hideSpinner();								          	
-						        	
-						            //Update the size of the map
-						            map.updateSize();
-						            refreshMap();						            						            
-                                                           
-                              });
-		
-		// when removed, close all popups that may have been
-		// referencing a feature of the layer destroying also
-		// the layer
-		layer.events.register('removed', layer, function (evt) {                                                          
-                              //layer.destroy(); Destroy call generates error when uploading new kml.
-                              layer.setVisibility(false);
-                              layer.display(false);
-                              });		
-	}
-}
-
-
-/**
- * Function handler for a click event on a feature of a layer.
- */
-function onFeatureSelect(evt) {	
-	if (typeof evt.feature.cluster != 'undefined') {
-		if(evt.feature.cluster.length > 1) {
-			return ;  
-		}
-	}
-	else {	
-		feature = evt.feature;
-		
-		if (!clickTimeline && !clickStats) {
-	    	lonLat = map.getLonLatFromPixel(new OpenLayers.Pixel(mouseControl.lastXy.x, mouseControl.lastXy.y));
-		}
-		
-		if (feature.style != null) {
-			currentStyle = feature.style;
-			feature.style = new OpenLayers.Style();	        	
-			feature.style.fillColor = 'blue';
-			feature.style.strokeColor = 'blue';
-			feature.style.strokeWidth = 1;
-			feature.style.strokeOpacity = 1;
-			feature.style.fillOpacity = 0.4;
-			feature.layer.redraw();
-		}
-		
-		popupClose(0);
-		currentFeature = evt.feature;
-		
-		var title = feature.attributes.name;
-		
-		var jsonObj = feature.attributes;
-		var content = '<table class="table table-striped"><tbody>';
-    	for (var key in jsonObj) {
-    		if (key != 'description' && key != 'name' && key != 'deleteFeatureButton') {
-    			content += '<tr><td><b>'+key+'</b></td><td>'+jsonObj[key]+'</td></tr>';
-    		}
-    	}
-    	content += '</tbody></table>';
-    	
-    	if (typeof(feature.attributes.deleteFeatureButton) != 'undefined') {
-    		content += feature.attributes.deleteFeatureButton;
-    	}
-       
-		var popup = new OpenLayers.Popup.Popover(
-			    "customPopup",
-			    lonLat,
-			    content,
-			    title
-		);
-		
-		feature.popup = popup;
-		map.addPopup(popup);
-	}		
-}
-
-/**
- * Function handler when a balloon is closed for a feature of a layer.
- */
-function onFeatureUnselect(evt) {
-	if (typeof evt.feature.cluster != 'undefined') {
-		if(evt.feature.cluster.length > 1) {
-			return ;  
-		}
-	}
-	else {	
-		popupClose(1);
-	}
-}
-
-
-function onFeatureAdded(evt) {
-	if (typeof evt.feature.cluster != 'undefined') {
-		if(evt.feature.cluster.length > 1) {
-			return ;  
-		}
-	}
-	else {	
-		feature = evt.feature;
-	}
-	//var temp = JSON.stringify(feature.attributes);
-	//alert(temp);
-	
-	//This is the temp value
-	/*{
-	 * "lgd":{"value":"http://linkedgeodata.org/triplify/way115393835"},
-	 * "lgdLabel":{"value":"Riviera San Nicolò"},
-	 * "name":"Result0",
-	 * "description":"<TABLE border=\"1\">\n\t\t\t\t\n\t\t\t\t\t<TR><TD>lgdLabel</TD><TD>Riviera San Nicolò</TD></TR>\n\t\t\t\t\t<TR><TD>lgd</TD><TD>http://linkedgeodata.org/triplify/way115393835</TD></TR>\n\t\t\t\t</TABLE>",
-	 * "styleUrl":"#m_ylw-pushpin"
-	 * }
-	 * */
-}
-
-/**
- * Parse the feature.attributes to transform the ExtendedData to normal data to use them for styling later on
- * 
- * So this input:
- * {
- *  "lgd":{"value":"http://linkedgeodata.org/triplify/way115393835"},
- *  "lgdLabel":{"value":"Riviera San Nicolò"},
- *  "name":"Result0",
- *  "description":"<TABLE border=\"1\">\n\t\t\t\t\n\t\t\t\t\t<TR><TD>lgdLabel</TD><TD>Riviera San Nicolò</TD></TR>\n\t\t\t\t\t<TR><TD>lgd</TD><TD>http://linkedgeodata.org/triplify/way115393835</TD></TR>\n\t\t\t\t</TABLE>",
- *  "styleUrl":"#m_ylw-pushpin"
- * }
- * 
- * Becomes:
- * {
- *  "lgd":"http://linkedgeodata.org/triplify/way115393835",
- *  "lgdLabel":"Riviera San Nicolò",
- *  "name":"Result0",
- *  "description":"<TABLE border=\"1\">\n\t\t\t\t\n\t\t\t\t\t<TR><TD>lgdLabel</TD><TD>Riviera San Nicolò</TD></TR>\n\t\t\t\t\t<TR><TD>lgd</TD><TD>http://linkedgeodata.org/triplify/way115393835</TD></TR>\n\t\t\t\t</TABLE>",
- *  "styleUrl":"#m_ylw-pushpin"
- * }
- */
-function onBeforeFeatureAdded(evt) {	
-	if (typeof evt.feature.cluster != 'undefined') {
-		if(evt.feature.cluster.length > 1) {
-			return ;  
-		}
-	}
-	else {	
-		var feature = evt.feature;
-		var temp = JSON.stringify(feature.attributes);
-			
-		temp = temp.replace(/{\"value\":/g,"");	
-		temp = temp.replace(/},/g, ",");
-		var obj = $.parseJSON(temp);
-			
-		evt.feature.attributes = obj;
-	}
-}
-
-/**
- * Function handler when a balloon is closed.
- */
-function closePopup(feature) {
-	//control.unselect(feature);
-}
-
-/**
- * Zoom to bounty box (lon, lat) of the layer
- */
-function zoomToBountyBox(layer) {
-	map.zoomToExtent(layer.getDataExtent());
-}
-
-function zoomToBountyBoxWMS(layerName) {
-	for (var i=0; i<mapLayers.length; i++) {
-        if (mapLayers[i].name == layerName) {
-        	map.zoomToExtent(mapLayers[i].imageBbox);
-        	break;
-        }
-    }	
-}
-
-/**
- * ***************************************************************************************************
- * Mobile version functions
- * ***************************************************************************************************
- */
-
-/**
- * Add KML layer.
- * Parameters are taken from HTML modal.
- */
-function addKMLLayerFromModal(){
-	var name = document.getElementById('layerName').value;
-    var path = document.getElementById('layerUrl').value;   
-    var localFile = document.getElementById('fileName').files[0];
-    var isTemp = document.getElementById('isTemporal').checked;
-    var mapId = 0;
-    var text = "";
-    var endpoint = "";
-    var type = "kml";
-    
-	//Check the file type if it is KML
-    var len = path.length;
-	var isKML = path.substring(len-4, len);
-	if (isKML != ".kml") {
-		//Print error and return
-		document.getElementById('alertMsgWrongFileType').style.display = 'block';
-        setTimeout(function() {$('#alertMsgWrongFileType').fadeOut('slow');}, fadeTime);
-        return ;
-	}
-	
-	//Create a URL for the localfile
-    var fileURL = createURL(localFile);
-    
-    //Get the path from user. If localfile is chosen, get its url instead.
-    var url = path;
-    if(typeof localFile != 'undefined') {
-    	//Local file
-    	url = fileURL.toString();
-    	addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, path, null, null, null);
-    }
-    else {
-		addLayer(url, name, isTemp, type, text, endpoint, mapId, null, path, null, null, null);
-    }   
-}
-
-/**
- * Add GML layer.
- * Parameters are taken from HTML modal.
- */
-function addGMLLayerFromModal(){
-	var name = document.getElementById('layerNameGml').value;
-    var path = document.getElementById('layerUrlGml').value;   
-    var localFile = document.getElementById('fileNameGml').files[0];
-    var isTemp = false;
-    var mapId = 0;
-    var text = "";
-    var endpoint = "";
-    var type = "gml";
-    
-	//Check the file type if it is GML
-    var len = path.length;
-	var isGML = path.substring(len-4, len);
-	if (isGML != ".xml" && isGML != ".gml") {
-		//Print error and return
-		document.getElementById('alertMsgWrongFileType').style.display = 'block';
-        setTimeout(function() {$('#alertMsgWrongFileType').fadeOut('slow');}, fadeTime);
-        return ;
-	}
-	
-	//Create a URL for the localfile
-    var fileURL = createURL(localFile);
-    
-    //Get the path from user. If localfile is chosen, get its url instead.
-    var url = path;
-    if(typeof localFile != 'undefined') {
-    	//Local file
-    	url = fileURL.toString();
-    	addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, path, null, null, null);
-    }
-    else {
-		addLayer(url, name, isTemp, type, text, endpoint, mapId, null, path, null, null, null);
-    }
-}
-
-/**
- * Add GeoTIFF layer.
- * Parameters are taken from HTML modal.
- */
-function addGeoTiffLayerFromModal(){
-	var name = document.getElementById('layerNameGeoTiff').value;
-    var path = document.getElementById('layerUrlGeoTiff').value;   
-    var localFile = document.getElementById('fileNameGeoTiff').files[0];
-    var isTemp = false;
-    var mapId = 0;
-    var query = "";
-    var endpoint = "";
-    var type = "geotiff";   
-    var bbox;
-    var imageSize;
-    
-    //Create a URL for the localfile
-	var fileURL = createURL(localFile);
-    
-    //First get the path from user. If localfile is chosen, get its url instead.
-    var url = path;
-    
-    /**
-     * Parse GDAL file for bbox and image size in pixels
-     * ATTENTION!!!! 
-     * bbox must be expressed in EPSG:4326 which is the projection of the map,
-     * so user must transform the tif image to EPSG:4326 and then provide the gdalinfo txt.
-     */
-    var pathGDAL = document.getElementById('layerUrlGdal').value;   
-    var localFileGDAL = document.getElementById('fileNameGDAL').files[0];		    		    
-    
-    //Create a URL for the localfile
-    var GDALfileURL = createURL(localFileGDAL);
-    
-    var urlGDAL = pathGDAL;
-    if(localFileGDAL) {
-    	urlGDAL = GDALfileURL;
-    }
-    else {
-    	if (urlGDAL == "") {
-    		//Use gdal installation on server to get image metadata and load it to map
-    		getGDALfromServer(path, localFile, name);  	
-    		return;
-    	}
-    }
-    
-    
-    //Get the gdal file to parse it
-    $.get(urlGDAL, function(data) {
-    	var text = data.toLowerCase();
-    	var metaData = parseBBOX(text);
-    	bbox = metaData.bbox;
-    	imageSize = metaData.size;
-    	
-	    if(typeof localFile != 'undefined') {
-	    	url = fileURL.toString();
-	    	addLayer(url, name, isTemp, type, query, endpoint, mapId, localFile, path, null, bbox, imageSize);
-	    }
-	    else {
-    		addLayer(url, name, isTemp, type, query, endpoint, mapId, null, path, null, bbox, imageSize);
-	    }		
-	    	
-    });
-}
-
-var tempUrl;
-/**
- * Upload image to server and use the gdal installation to get the image metadata.
- * @param path
- * @param localFile
- * @param name
- */
-function getGDALfromServer(path, localFile, name) {
-	//Create image info file, from running gdal in server side
-	if(localFile && path) {
-		//Upload the file to the JerseyServer so that we can have an absolute URI for saving and loading a map.	    
-    	document.getElementById('alertMsgServerUpload').style.display = 'block';
-    	uploadLocalFileToServer(localFile, name, name, 'geotiff', function(results) {
-    		setTimeout(function() {$('#alertMsgServerUpload').fadeOut('slow');}, fadeTimeFast);
-    		tempUrl = results;
-    		$.ajax({
-    	        type: 'POST',
-    	        url: rootURL + '/gdalInfo/',
-    	        data: results,
-    	        dataType: 'text',
-    	        headers: {
-    	        	//'Accept-Charset' : 'utf-8',
-    	        	'Content-Type'   : 'text/plain; charset=utf-8',
-    	        },
-    	        timeout: ajaxTimeout,
-    	        success: getImageInfoGDAL,
-    	        error: printError
-    	    });
-    	});
-    }
-    else if (path){
-    	//Upload file to server and create the layer
-		document.getElementById('alertMsgServerDownload').style.display = 'block';
-    	downloadFile(path, function(result) {
-    		setTimeout(function() {$('#alertMsgServerDownload').fadeOut('slow');}, fadeTimeFast);
-    		tempUrl = path;
-    		$.ajax({
-    	        type: 'POST',
-    	        url: rootURL + '/gdalInfo/',
-    	        data: result,
-    	        dataType: 'text',
-    	        headers: {
-    	        	//'Accept-Charset' : 'utf-8',
-    	        	'Content-Type'   : 'text/plain; charset=utf-8',
-    	        },
-    	        timeout: ajaxTimeout,
-    	        success: getImageInfoGDAL,
-    	        error: printError
-    	    });
-    	});
-    } 
-}
-
-/**
- * Get the gdalinfo results, parse the size and bbox and create the layer.
- * @param results
- * @param status
- * @param jqXHR
- */
-function getImageInfoGDAL(results, status, jqXHR) {	
-	var text = results.toLowerCase();
-	console.log('***** GDAL INFO: '+text);
-	var metaData = parseBBOX(text);
-	var bbox = metaData.bbox;
-	var imageSize = metaData.size;
-	
-	var name = document.getElementById('layerNameGeoTiff').value;
-	console.log('NAME IMAGE: '+name);
-	if (name == "") {
-		name = 'tester';
-	}
-
-    addLayer(tempUrl, name, false, 'geotiff', "", "", 0, null, null, null, bbox, imageSize);
-}
-
-/**
- * Parse gdalinfo results to get image size and bbox.
- */
-function parseBBOX(text) {
-	text = text.replace(/\"/g, "|");
-	text = text.replace(/\'/g, "|");
-	
-	//Image size in pixels
-	var str = text.match(/size is [0-9]*, [0-9]*/g);
-	var test = str.toString().replace(/,/g, "");
-	test = test.toString().split(" ");
-	var w = Number(test[2]);
-	var h = Number(test[3]);
-	var imageSize = new OpenLayers.Size(w, h);
-	
-	//Corner coordinates
-	var ul = text.match(/upper\sleft\s*\(\s*[-]*[0-9]*\.[0-9]*,\s*[-]*[0-9]*\.[0-9]*/g);
-	ul = ul.toString().split("(");
-	ul = ul[1].toString().split(",");
-	var left = Number(ul[0]);
-	var top = Number(ul[1]);
-	
-	var ur = text.match(/upper\sright\s*\(\s*[-]*[0-9]*\.[0-9]*,\s*[-]*[0-9]*\.[0-9]*/g);
-	ur = ur.toString().split("(");
-	ur = ur[1].toString().split(",");
-	var right = Number(ur[0]);
-	
-	var ll = text.match(/lower\sleft\s*\(\s*[-]*[0-9]*\.[0-9]*,\s*[-]*[0-9]*\.[0-9]*/g);
-	ll = ll.toString().split("(");
-	ll = ll[1].toString().split(",");
-	var bottom = Number(ll[1]);		    	   	
-	
-	var adjustParameter = 0.04;
-	var bbox = new OpenLayers.Bounds(left, bottom-adjustParameter, right, top-adjustParameter).transform(WGS84, map.getProjectionObject());	
-	
-	return new ImageMetaData(bbox, imageSize);
-}
-
-/**
- * Add WMS layer.
- * Parameters are taken from HTML modal.
- */
-function addWMSLayerFromModal(){
-	var name = document.getElementById('layerNameWMS').value;
-    var url = document.getElementById('serverWMS').value;   
-    var layersWMS = document.getElementById('layersWMS').value; 
-    var isTemp = false;
-    var mapId = 0;
-    var text = "";
-    var endpoint = "";
-    var type = "wms";   			
-   
-    addLayer(url, name, isTemp, type, text, endpoint, mapId, null, layersWMS, null, null, null);
-	
-	document.getElementById('hiddenLoadWMS').reset();
-	document.getElementById('WMSLayerList').innerHTML = '';
-}
-
-/**
- * Create the layer on the map using OpenLayers 2.13
+ * Create the layer on the map using OpenLayers 3
  */
 function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, path, style, bbox, imageSize) {
 	if (url == 'null') {
@@ -814,15 +372,10 @@ function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, pat
     	        return ;
     		}
     	}  			
-    	
-    	if (style == null) {
-        	document.getElementById('alertMsgLoading').style.display = 'block';
-    	}
-    	showSpinner(colorSpin);  
         
         //KML
     	if (type === "kml") {
-    		var tl = new Layer(name, url, isTemp, type, text, endpoint, '#FFB414', '#FFB414', './assets/images/map-pin-md.png', 20, mapId, '', '');
+    		var tl = new Layer(name, url, isTemp, type, text, endpoint, '#ff9900', '#ff9900', './assets/images/map-pin-md.png', 20, mapId, '', '');
             mapLayers.push(tl);
             
             if(localFile && path) {
@@ -880,7 +433,38 @@ function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, pat
 	    	
 	    	//Reset form data
 	        document.getElementById('hiddenLoadGml').reset();
-    	}  	
+    	} 
+    	
+    	//JSON
+    	if (type === "geojson" || type === "topojson") {
+    		var tl = new Layer(name, url, isTemp, type, text, endpoint, '#FFB414', '#FFB414', './assets/images/map-pin-md.png', 20, mapId, '', '');
+            mapLayers.push(tl);
+            
+            if(localFile && path) {
+            	//Upload the file to the JerseyServer so that we can have an absolute URI for saving and loading a map.	    
+            	document.getElementById('alertMsgServerUpload').style.display = 'block';
+            	uploadLocalFileToServer(localFile, name, layerName, type, function(results) {
+            		setTimeout(function() {$('#alertMsgServerUpload').fadeOut('slow');}, fadeTimeFast);
+            		mapLayers[mapLayers.length-1].uri = results;
+                	addJSONLayer(name, results, style, isTemp, type);
+            	});
+            }
+            else if (path){
+            	//Upload file to server and create the layer
+        		document.getElementById('alertMsgServerDownload').style.display = 'block';
+	        	downloadFile(url, function(result) {
+	        		setTimeout(function() {$('#alertMsgServerDownload').fadeOut('slow');}, fadeTimeFast);
+	        		addJSONLayer(name, result, style, isTemp, type);
+	        	});
+            } 
+            else {
+            	//The layer is produced by query, or is local and is loaded from existing map, so it's file exists
+            	addJSONLayer(name, url, style, isTemp, type);
+            }
+	    	
+	    	//Reset form data
+	        document.getElementById('hiddenLoadGml').reset();
+    	}  
     	
     	//GeoTiff
     	if (type === 'geotiff'){
@@ -915,10 +499,10 @@ function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, pat
     	
     	//WMS
     	if (type === 'wms'){
-        	var tl = new Layer(name, url+'#'+path, isTemp, type, text, endpoint, '', '', '', '', mapId, '', '');
+    		var wmsTypeInfo = [type, path[1], path[2]];
+        	var tl = new Layer(name, url+'#'+path[0], isTemp, wmsTypeInfo.toString(), text, endpoint, style, '', '', '', mapId, '', '');
         	mapLayers.push(tl);       	
-        	cloneWMSList(url, name, path);      	
-    		addWMSLayer(name, url, path);
+        	cloneWMSList(url, name, path[0], style, [path[1], path[2]]);      	
     	}
     	
     	//Add a row for this layer in the Manage Layers view
@@ -932,24 +516,7 @@ function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, pat
     	document.getElementById('alertMsgFailEmpty').style.display = 'block';
         setTimeout(function() {$('#alertMsgFailEmpty').fadeOut('slow');}, fadeTime);
     }
-    else {
-    	/*
-    	var tl = new Layer(name, 'null', isTemp, type, text, endpoint, '#FFB414', '#FFB414', './assets/images/map-pin-md.png', 20, mapId, '', '');
-        mapLayers.push(tl);
-    	
-    	//Reset form data
-        document.getElementById('hiddenLoadKml').reset();
-        
-        //Add a row for this layer in the Manage Layers view
-        addTableRow(name, type);  
-       
-        //Show renewed last modification date and number of layers
-        document.getElementById('infoNumOfLayers').innerHTML = mapLayers.length;
-        
-        document.getElementById('alertMsgNoResults').style.display = 'block';
-        setTimeout(function() {$('#alertMsgNoResults').fadeOut('slow');}, fadeTime);    
-        */    
-    }
+    
 }
 
 /**
@@ -982,6 +549,11 @@ function showFileNameGml() {
 	$('#layerUrlGml').val(temp[2]);			
 }
 
+function showFileNameJSON() {
+	var temp = $('#fileNameJSON').val().split('\\');
+	$('#layerUrlJSON').val(temp[2]);			
+}
+
 function showFileNameGeoTiff() {
 	var temp = $('#fileNameGeoTiff').val().split('\\');
 	$('#layerUrlGeoTiff').val(temp[2]);			
@@ -1002,342 +574,10 @@ function showUserIconName() {
 	$('#userIconUrl').val(temp[2]);			
 }
 
-/**
- * Adds the given KML file as a new layer on the map.
- */
-function addKmlLayer(label, filename, styling, isTemp) {
-	if (filename && label) {
-		
-		var symbolizer = OpenLayers.Util.applyDefaults({fillOpacity: 0.6}, OpenLayers.Feature.Vector.style["default"]);		
-		var styleMap = new OpenLayers.StyleMap({"default": symbolizer});
-		var originalStyle = false;
-		
-		if (styling != null){
-			originalStyle = false;
-			styleMap = styling;
-		}
-		
-		var clusterStrategy = new OpenLayers.Strategy.Cluster({distance: 75, threshold: 30, autoActivate: false});
-		
-		var styleAll = new OpenLayers.Style({
-				fillColor: "${fillColor}", 
-				fillOpacity: 0.5, 
-				strokeColor: "${strokeColor}",
-				strokeOpacity: 1,
-				strokeWidth: 1,
-				pointRadius: "${pointRadius}",
-				fontColor: "#CC0099",
-				fontOpacity: 1,
-				fontSize: "25px",
-				fontWeight: "bold",
-				label: "${label}"
-			}, 
-			{
-				context: {
-					label: function(feature) {
-						if (typeof feature.cluster != 'undefined') {
-							if(feature.cluster.length > 1) {
-								return feature.cluster ? feature.cluster.length : "";  
-							}
-						}
-						else {
-							return "";
-						}
-					},
-					pointRadius: function(feature) {
-						if (typeof feature.cluster != 'undefined') {
-					    	if(feature.cluster.length > 1) {
-					            return (feature.cluster.length/3)+20; 
-					    	}
-						}
-						else {
-							return styleMap.styles.default.defaultStyle.pointRadius;
-						}
-					},
-					fillColor: function(feature) {
-						if (typeof feature.cluster != 'undefined') {
-					    	if(feature.cluster.length > 1) {
-					            return '#66FFCC'; 
-					    	}
-						}
-						else {
-							return styleMap.styles.default.defaultStyle.fillColor;
-						}
-					},
-					strokeColor: function(feature) {
-						if (typeof feature.cluster != 'undefined') {
-					    	if(feature.cluster.length > 1) {
-					            return '#25375C'; 
-					    	}
-						}
-						else {
-							return styleMap.styles.default.defaultStyle.strokeColor;
-						}
-					}
-				}
-		});
-
-		var sm = new OpenLayers.StyleMap({"default": styleAll, "select":clickFeatureStyle});
-		var layer = new OpenLayers.Layer.Vector(label, {
-                                                projection: map.displayProjection,
-                                                styleMap: sm,
-                                                rendererOptions: { zIndexing: true },
-                                                //strategies: [new OpenLayers.Strategy.Fixed(), clusterStrategy],
-                                                strategies: [new OpenLayers.Strategy.Fixed()],
-                                                protocol: new OpenLayers.Protocol.HTTP({
-                                                                                       url: filename,
-                                                                                       format: new OpenLayers.Format.KML({
-                                                                                                                         extractStyles: originalStyle,
-                                                                                                                         extractAttributes: true,
-                                                                                                                         maxDepth: 2
-                                                                                                                         })
-                                                                                       })
-                                                
-                                                });
-						
-			// add the new layer to the map and refresh
-			map.addLayer(layer);
-			      
-			// set the selection control for the new layer
-		    if (control) { // reuse the control
-		    	control.setLayer((control.layers||control.layer).concat(layer));
-		    } else { // create a new control object (shared by all layers)
-		    	control = new OpenLayers.Control.SelectFeature([layer]);
-		    	map.addControl(control);
-		    	control.activate();
-		                
-		    	//TODO override control's destroy method
-		    	//OpenLayers.Control.SelectFeature.prototype.destroy = function() { alert("called");};
-		    }  
-		    
-		    
-			// add some handlers for selection/unselection of features in the layer
-			layer.events.on({
-	                        'featureselected': onFeatureSelect,
-	                        'featureunselected': onFeatureUnselect,
-	                        //'featureadded': onFeatureAdded,
-	                        'beforefeatureadded': onBeforeFeatureAdded
-	                        });
-			
-			
-			// when loaded, calculate the new extent for all layers and zoom to it
-			layer.events.register('loadend', layer, function (evt) {	
-	                              	if (styling != null) {
-	                              		document.getElementById('alertMsgStyleLayerWait').style.display = 'none';
-	                              		
-	                              		showMap();
-	                              		document.getElementById('alertMsgStyleLayer').style.display = 'block';
-	                              		setTimeout(function() {$('#alertMsgStyleLayer').fadeOut('slow');}, fadeTime);
-	                              	}
-	                              	else {
-	                              		setTimeout(function() {$('#alertMsgLoading').fadeOut('slow');}, fadeTime);
-	                              	}
-	                              	
-	                              	for (var i=0; i<mapLayers.length; i++) {
-	                            		if ( (mapLayers[i].name === label) && (label != 'userInfo')) {   	                            		
-		                            		mapLayers[i].features = getLayerFeatureNames(layer);
-	    	                            	break;
-	                            		}
-	                            	}
-	                              		                            	
-	                              	styleFeaturesTheme(label);
-	                              	hideSpinner();	                              	                                
-	                              		                              		                              	
-	          						map.zoomToExtent(layer.getDataExtent());
-
-	          						if (layer.strategies.length > 1) {
-		          						if (layer.strategies[1].activate()) {
-		        		        			layer.refresh({force: true});
-		        	        			}
-	          						}
-	          						
-	          						if (isTemp) {
-	          							parseTimelineFeatures(layer, filename);	
-	          						}	
-	          						
-	                                //Update the size of the map
-	                                map.updateSize();
-	                                refreshMap();	
-	                                
-	                                updateLayerStats(label);
-	                             });
-			
-			// when removed, close all popups that may have been
-			// referencing a feature of the layer destroying also
-			// the layer
-			layer.events.register('removed', layer, function (evt) {	                              
-	                                layer.setVisibility(false);
-	                                layer.display(false);
-	                              });	
-	                              						
-			
-	}
-}
-
-
-
-/**
- * Adds the given GML file as a new layer on the map.
- */
-function addGmlLayer(label, filename, styling, isTemp) {
-	if (filename && label) {
-		
-		var symbolizer = OpenLayers.Util.applyDefaults({fillOpacity: 0.6}, OpenLayers.Feature.Vector.style["default"]);		
-		var styleMap = new OpenLayers.StyleMap({"default": symbolizer});
-		var originalStyle = false;
-        
-		if (styling != null){
-			originalStyle = false;
-			styleMap = styling;
-		}
-		
-		var clusterStrategy = new OpenLayers.Strategy.Cluster({distance: 75, threshold: 30, autoActivate: false});
-
-		var styleAll = new OpenLayers.Style({
-			fillColor: "${fillColor}", 
-			fillOpacity: 0.5, 
-			strokeColor: "${strokeColor}",
-			strokeOpacity: 1,
-			strokeWidth: 1,
-			pointRadius: "${pointRadius}",
-			fontColor: "#CC0099",
-			fontOpacity: 1,
-			fontSize: "25px",
-			fontWeight: "bold",
-			label: "${label}"
-		}, 
-		{
-			context: {
-				label: function(feature) {
-					if (typeof feature.cluster != 'undefined') {
-						if(feature.cluster.length > 1) {
-							return feature.cluster ? feature.cluster.length : "";  
-						}
-					}
-					else {
-						return "";
-					}
-				},
-				pointRadius: function(feature) {
-					if (typeof feature.cluster != 'undefined') {
-				    	if(feature.cluster.length > 1) {
-				            return (feature.cluster.length/3)+20; 
-				    	}
-					}
-					else {
-						return styleMap.styles.default.defaultStyle.pointRadius;
-					}
-				},
-				fillColor: function(feature) {
-					if (typeof feature.cluster != 'undefined') {
-				    	if(feature.cluster.length > 1) {
-				            return '#66FFCC'; 
-				    	}
-					}
-					else {
-						return styleMap.styles.default.defaultStyle.fillColor;
-					}
-				},
-				strokeColor: function(feature) {
-					if (typeof feature.cluster != 'undefined') {
-				    	if(feature.cluster.length > 1) {
-				            return '#25375C'; 
-				    	}
-					}
-					else {
-						return styleMap.styles.default.defaultStyle.strokeColor;
-					}
-				}
-			}
-		});
-		
-		var sm = new OpenLayers.StyleMap({"default": styleAll, "select":clickFeatureStyle});
-		var layer = new OpenLayers.Layer.Vector(label, {
-                                                projection: map.displayProjection,
-                                                styleMap: sm,
-                                                rendererOptions: { zIndexing: true },
-                                                //strategies: [new OpenLayers.Strategy.Fixed(), clusterStrategy],
-                                                strategies: [new OpenLayers.Strategy.Fixed()],
-                                                protocol: new OpenLayers.Protocol.HTTP({
-                                                                                       url: filename,
-                                                                                       format: new OpenLayers.Format.GML({
-                                                                                           extractStyles: originalStyle,
-                                                                                           extractAttributes: true,
-                                                                                           maxDepth: 2
-                                                                                           })
-                                                                                       })	                                                
-                                                });
-			
-		// add the new layer to the map and refresh
-		map.addLayer(layer);
-						
-		// set the selection control for the new layer
-	    if (control) { // reuse the control
-	    	control.setLayer((control.layers||control.layer).concat(layer));
-	    } else { // create a new control object (shared by all layers)
-	    	control = new OpenLayers.Control.SelectFeature([layer]);
-	    	map.addControl(control);
-	    	control.activate();
-	                
-	    	//TODO override control's destroy method
-	    	//OpenLayers.Control.SelectFeature.prototype.destroy = function() { alert("called");};
-	    }   
-		
-       	// add some handlers for selection/unselection of features in the layer
-	    layer.events.on({
-            'featureselected': onFeatureSelect,
-            'featureunselected': onFeatureUnselect,
-            //'featureadded': onFeatureAdded,
-            'beforefeatureadded': onBeforeFeatureAdded
-            });
-					
-		// when loaded, calculate the new extent for all layers and zoom to it
-		layer.events.register('loadend', layer, function (evt) {
-	       						map.zoomToExtent(layer.getDataExtent());	                              	
-
-                              	if (styling != null) {
-                              		document.getElementById('alertMsgStyleLayerWait').style.display = 'none';	                              		
-                              		showMap();
-                              		document.getElementById('alertMsgStyleLayer').style.display = 'block';
-                              		setTimeout(function() {$('#alertMsgStyleLayer').fadeOut('slow');}, fadeTime);
-                              	}
-                              	else {
-                              		setTimeout(function() {$('#alertMsgLoading').fadeOut('slow');}, fadeTime);
-                              	}	                              	                              	                       
-                            	
-                              	for (var i=0; i<mapLayers.length; i++) {
-                            		if ( (mapLayers[i].name === label) && (label != 'userInfo')) {   	                            		
-	                            		mapLayers[i].features = getLayerFeatureNames(layer);
-    	                            	break;
-                            		}
-                            	}
-                              	hideSpinner();	 
-                              	
-                              	if (layer.strategies.length > 1) {
-	          						if (layer.strategies[1].activate()) {
-	        		        			layer.refresh({force: true});
-	        	        			}
-          						}
-                    			
-                                //Update the size of the map
-                                map.updateSize();
-                                refreshMap();     
-                                
-                                updateLayerStats(label);
-                              });
-			
-		// when removed, close all popups that may have been
-		// referencing a feature of the layer destroying also
-		// the layer
-		layer.events.register('removed', layer, function (evt) {
-                                /*for (var i = 0; i < map.popups.length; i++) {
-                                    closePopup(map.popups[i]);
-                                }*/
-	                              
-                                //layer.destroy(); Destroy call generates error when uploading new kml.
-                                layer.setVisibility(false);
-                                layer.display(false);
-                              });							
-	}
+function clearPopup() {
+	clearOverlayFeatures();
+	overlay.setPosition(undefined);
+    closer.blur();
+    return false;
 }
 

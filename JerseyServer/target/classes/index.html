@@ -29,9 +29,6 @@
     <!-- Loading indicator (spinner) -->
     <script type="text/javascript" src="./assets/js/spin.js"></script>
     
-    <!-- GEOSS DAB API -->
-    <script type="text/javascript" src="./assets/js/giapi-1.2.8-beta.min.js"></script>
-    
     <!-- AlaSQL -->
     <script type="text/javascript" src="./assets/js/alasql.min.js"></script>
     
@@ -39,7 +36,15 @@
     <script type="text/javascript" src="./assets/js/proj4js-compressed.js"></script>   
     <script type="text/javascript" src="./assets/js/projections.js"></script>
     
+    <!-- OL3 JS -->
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.14.2/css/ol.css" type="text/css">
+    <script src="http://openlayers.org/en/v3.14.2/build/ol.js"></script>  
+    
+    <!-- GEOSS DAB API
+    <script type="text/javascript" src="./assets/js/giapi-1.2.8-beta.min.js"></script> -->
+    
     <!-- Custom JS -->
+    <script type="text/javascript" src="./assets/js/olMap.js"></script>
     <script type="text/javascript" src="./assets/js/interface.js"></script>
     <script type="text/javascript" src="./assets/js/manageLayers.js"></script>
     <script type="text/javascript" src="./assets/js/stylingKML.js"></script>
@@ -52,17 +57,21 @@
     <script type="text/javascript" src="./assets/js/charts.js"></script> 
     <script type="text/javascript" src="./assets/js/chartTemplate.js"></script> 
     <script type="text/javascript" src="./assets/js/searchMap.js"></script>  
-    <script type="text/javascript" src="./assets/js/dab.js"></script>
-    <script type="text/javascript" src="./assets/js/userData.js"></script>
-    <script type="text/javascript" src="./assets/js/swefs.js"></script>
+    <!-- <script type="text/javascript" src="./assets/js/dab.js"></script>  -->
+    <!-- <script type="text/javascript" src="./assets/js/userData.js"></script> -->
     <script type="text/javascript" src="./assets/js/themeStyling.js"></script>
     <script type="text/javascript" src="./assets/js/explore.js"></script>
     <script type="text/javascript" src="./assets/js/filter.js"></script>
     <script type="text/javascript" src="./assets/js/WMS.js"></script>
-    <script type="text/javascript" src="./assets/js/findChanges.js"></script>
     <script type="text/javascript" src="./assets/js/layerFilter.js"></script>
     <script type="text/javascript" src="./assets/js/myTimeline.js"></script>
     <script type="text/javascript" src="./assets/js/stats.js"></script>
+    <script type="text/javascript" src="./assets/js/KML.js"></script>
+    <script type="text/javascript" src="./assets/js/GML.js"></script>
+    <script type="text/javascript" src="./assets/js/JSON.js"></script>
+    <script type="text/javascript" src="./assets/js/GeoTIFF.js"></script>
+    <script type="text/javascript" src="./assets/js/helpMapDrawArea.js"></script>
+    <script type="text/javascript" src="./assets/js/OpenLayers.js"></script>
     
     <!-- Dragdealer JS -->
     <script type="text/javascript" src="./assets/js/dragdealer.js"></script>
@@ -75,15 +84,6 @@
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="./assets/js/ie10-viewport-bug-workaround.js"></script>
-
-    <!-- OpenLayers JS -->
-    <script type="text/javascript" src="./assets/js/OpenLayers.js"></script>
-    <script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3&amp;sensor=false"></script>
-    <script type="text/javascript" src="./assets/js/olMap.js"></script>
-    
-    <!-- Bootstrap-OL popups -->
-    <script type="text/javascript" src="./assets/js/Popover.js"></script>
-    <link href="./assets/css/openlayerspopovers.css" rel="stylesheet" />
     
     <!-- Chart JS -->
     <script type="text/javascript" src="./assets/js/Chart.js"></script>
@@ -96,7 +96,7 @@
      
   </head>
 
-  <body onload = "initialize(1); loadMapFromURL()">	
+  <body onload = "initialize(); loadMapFromURL()">	
 	
 <!-- ********************************************************************************************************************************** -->          
   
@@ -112,7 +112,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="http://sextant.di.uoa.gr/" target="_blank"><img src="./assets/images/SEXTANT.png" width="140" onClick="showMap()" id="logo" alt=""></a>  
+            <a class="navbar-brand" href="http://sextant.di.uoa.gr/" target="_blank"><img src="./assets/images/SEXTANT.png" width="140" onClick="" id="logo" alt=""></a>  
           </div>
           <div class="navbar-collapse collapse">
             
@@ -124,18 +124,21 @@
                   <li class="dropdown-header"><b>KML</b></li>
                   <li><a onClick="" data-toggle="modal" data-target="#KMLmodal">Load KML layer</a></li>                 	            
                   <li class="divider"></li>
-                  <li class="dropdown-header"><b>GML</b></li>
-                  <li><a onClick="" data-toggle="modal" data-target="#GMLmodal">Load GML layer</a></li>                 	            
+                  <li class="dropdown-header"><b>JSON</b></li>
+                  <li><a onClick="" data-toggle="modal" data-target="#JSONmodal">Load JSON layer</a></li>                 	            
                   <li class="divider"></li>
+                 <!-- <li class="dropdown-header"><b>GML</b></li>
+                  <li><a onClick="" data-toggle="modal" data-target="#GMLmodal">Load GML layer</a></li>                 	            
+                  <li class="divider"></li>  --> 
                   <li class="dropdown-header"><b>GeoTIFF</b></li>
                   <li><a onClick="" data-toggle="modal" data-target="#GeoTiffmodal">Load GeoTIFF layer</a></li>                 	            
+                  <li class="divider"></li>
                   <li class="divider"></li>
                   <li class="dropdown-header"><b>WMS</b></li>
                   <li><a onClick="" data-toggle="modal" data-target="#WMSmodal">Load WMS layer</a></li>                 	            
                   <li class="divider"></li>
                   <li class="dropdown-header"><b>MAP</b></li>
                   <li><a onClick="" data-toggle="modal" data-target="#mapIDmodal">Load from MapID</a></li>
-                  <!-- <li><a href="#" onClick="" data-toggle="modal" data-target="#mapURLmodal">Load from URL</a></li> -->
                   <li><a onClick="showLayerBox()" data-toggle="modal" data-target="#mapSavemodal" >Save map</a></li>
                 </ul>
               </li>
@@ -148,30 +151,28 @@
                       <li><a onClick="zoomToAll()">Zoom to All Layers</a></li>
                       <li><a onClick="showColorPanel()">Show Color panel</a></li>
                       <li class="divider"></li>
+                      <li class="divider"></li>
                   	  <li class="dropdown-header"><b>MAP BASE LAYER</b></li>
-                  	  <li><a onClick="baseGsat()">Google Satelite</a></li>
-                      <li><a onClick="baseGmap()">Google Maps</a></li>
-                      <li><a onClick="baseGhyb()">Google Hybrid</a></li>
+                  	  <li><a onClick="setBaseBing()">Bing Maps</a></li>
+                      <li><a onClick="setBaseOSM()">OSM Maps</a></li>
+                      <!--  <li><a onClick="baseGhyb()">Google Hybrid</a></li> -->
                   </ul>
               </li>
               <li class="dropdown">
-                  <!-- <li class=""><a href="#" onClick="" data-toggle="modal" data-target="#modalQuery"><span class="glyphicon glyphicon-search"></span></a></li>   -->                    
-              	  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-search"></span></a>
+              	  <a class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-search"></span></a>
                   <ul class="dropdown-menu" role="menu">
                       <li class="dropdown-header"><b>ENDPOINTS</b></li>
                       <li class=""><a onClick="" data-toggle="modal" data-target="#modalPoseQuery">Pose a Query</a></li>
                       <li class=""><a onClick="" data-toggle="modal" data-target="#modalQuery">Predefined Queries</a></li>  
                       <li class="divider"></li>
+                      <li class="divider"></li>
                       <li class="dropdown-header"><b>MAP SEARCH</b></li>  
                       <li class=""><a onClick="" data-toggle="modal" data-target="#modalMapSearch">Search Endpoint</a></li>  
-                      <li class="divider"></li>
+                    <!--   <li class="divider"></li>
                       <li class="dropdown-header"><b>GEOSS PORTAL</b></li>  
                       <li class=""><a href="#" onClick="resetGEOSS()" data-toggle="modal" data-target="#modalGEOSSPortalSearch">Search Datasets</a></li> 
-                      <li class=""><a href="#" onClick="" data-toggle="modal" data-target="#modalGEOSSPortalResults">Show Results</a></li>                        
-                 <!-- 	  <li class="divider"></li>
-                 	  <li class="dropdown-header"><b>CHANGESETS</b></li> 
-                  	  <li><a onClick="selectAreaChangeset()">Find changeset</a></li>
-                 -->
+                      <li class=""><a href="#" onClick="" data-toggle="modal" data-target="#modalGEOSSPortalResults">Show Results</a></li>                                        
+                    --> 
                   </ul>
               </li>
               
@@ -194,7 +195,8 @@
           </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
       </div>
-      
+
+	</div>      
 <!-- ********************************************************************************************************************************** -->          
 	<div id="allContents">
 <!-- ********************************************************************************************************************************** -->          
@@ -228,7 +230,7 @@
 					  </div>
 			          <br>
 				      <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); addKMLLayerFromModal();">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addKMLLayerFromModal();">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
@@ -268,7 +270,7 @@
 					  </div>
 					  
 				      <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); addGeoTiffLayerFromModal();">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addGeoTiffLayerFromModal();">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
@@ -299,7 +301,43 @@
 					      <a class="btn btn-lg btn-default btn-block" onClick="$('#fileNameGml').click();">Browse</a>
 					  </div>
 				      <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); addGMLLayerFromModal();">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addGMLLayerFromModal();">Ok</button>    	
+				      </div>
+				      <div class="rightButton">
+				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
+				      </div>
+			    </form>
+		      </div>
+		    </div>
+		  </div>
+	  </div>
+	  
+	  <!-- Pop up window with form to load JSON files -->
+      <div class="modal fade" id="JSONmodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+		        <h4 class="modal-title">Create layer</h4>
+		      </div>
+		      <div class="modal-body">
+		        <a onClick="showHelpPage('JSON.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>
+		      
+		        <form class="form-signin" role="form" action="#" id=hiddenLoadJSON >
+			    	  <h4 class="form-signin-heading">Load JSON from URI</h4>
+			          <input type="text" class="form-control" placeholder="Label" id="layerNameJSON">			          			          
+			          <input type="file" name="file" style="visibility:hidden;" id="fileNameJSON" onChange="showFileNameJSON()">
+					  <div class="input-append">
+					  	  <input type="text" class="form-control" placeholder="URI" id="layerUrlJSON">
+					      <a class="btn btn-lg btn-default btn-block" onClick="$('#fileNameJSON').click();">Browse</a>
+					  </div>
+					  
+			    	  <select class="form-control" id="JSONtype" style="margin-top: 10px">
+			       	      <option>GeoJSON</option>
+			       	  	  <option>TopoJSON</option>
+			       	  </select>
+				      <div class="leftButton">
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addJSONLayerFromModal();">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
@@ -323,15 +361,37 @@
 		      
 		        <form class="form-signin" role="form" action="#" id="hiddenLoadWMS" >
 			    	  <h4 class="form-signin-heading">Load WMS from server</h4>
-			          <input type="text" class="form-control" placeholder="Label" id="layerNameWMS">			          			          
+			          <input type="text" class="form-control" placeholder="Label" id="layerNameWMS">
+			          <br>			          			          
 			          <input type="text" class="form-control" placeholder="WMS server URI" id="serverWMS">
-			          <button type="button" class="btn btn-block btn-default" onClick="getWMSList()">Connect</button>
-			          <br>			          
+			          
+			          <div class="row">
+			          	  <div class="col-md-6 col-sm-6">
+					          <select class="form-control" id="ServerType" style="margin-top: 1px">
+					       	      <option>geoserver</option>
+					       	      <option>mapserver</option>
+					       	  	  <option>qgis</option>
+					       	  </select>
+				       	  </div>
+				       	  <div class="col-md-6 col-sm-6">	
+					          <select class="form-control" id="WMSversion" style="margin-top: 1px">
+					       	      <option>1.1.0</option>
+					       	  	  <option>1.3.0</option>
+					       	  </select>	
+				       	  </div>
+			          </div>
+			          
+			          <button type="button" class="btn btn-block btn-default" onClick="getWMSList()" style="margin-top: 1px">Get Capabilities</button>
+			          <br>
+			          			          
 			          <input type="text" class="form-control" placeholder="WMS layer" id="layersWMS">
-			          <select class="form-control" id="WMSLayerList" onChange="updateWMSname()"></select>
-			          	
+			          <select class="form-control" id="WMSLayerList" onChange="updateWMSname()" style="margin-top: 5px" disabled></select>
+			          <select class="form-control" id="WMSstyle" style="margin-top: 2px" disabled>
+			       	      <option>default style</option>
+			       	  </select>			       	  
+			       	  
 				      <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); addWMSLayerFromModal();">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addWMSLayerFromModal();">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
@@ -361,7 +421,7 @@
 			          <input type="text" class="form-control" placeholder="URI" id="mapIdEndpoint" />
 			          <input type="text" class="form-control" placeholder="Port: 80" id="mapIdEndpointPort" />
 			          <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); addMapFromId(); ">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addMapFromId(); ">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
@@ -385,7 +445,7 @@
 			    	  <h3 class="form-signin-heading">Load Map from URL</h3>
 			          <input type="text" class="form-control" placeholder="URL" id="mapUrl">
 				      <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); styleFeatures()">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="styleFeatures()">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>    	          	
@@ -436,7 +496,7 @@
 			          <div id="chooseLayers"></div>
 			          		          
 				      <div class="leftButton">
-				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall okBTNsaveMap" data-dismiss="modal" onClick="showMap(); saveMapToEndpoint(); resetLayerSelection()">Ok</button>    	
+				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall okBTNsaveMap" data-dismiss="modal" onClick="saveMapToEndpoint(); resetLayerSelection()">Ok</button>    	
 				      </div>
 				      <div class="rightButton">
 				          <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="resetLayerSelection()">Cancel</button>    	          	
@@ -580,7 +640,7 @@
 			    	  </div>
 			    	  
 			          <div class="leftButton">		  
-			        	  <button type="submit" id="okPredefinedButton" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); loadQuery()" disabled>Ok</button>
+			        	  <button type="submit" id="okPredefinedButton" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="loadQuery()" disabled>Ok</button>
 			    	  </div>
 			    	  <div class="rightButton">
 			              <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="resetForm()">Cancel</button>
@@ -621,7 +681,7 @@
 			    	  </div>
 			    	  
 			          <div class="leftButton">		  
-			        	  <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); runQuery();">Ok</button>
+			        	  <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="runQuery();">Ok</button>
 			    	  </div>
 			    	  <div class="rightButton">
 			              <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="">Cancel</button>
@@ -719,7 +779,7 @@
 			    	  	  
 			    	  </div>
 			          <div class="leftButton">		  
-			        	  <button type="submit" id="okChartButton" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="showMap(); createChart()" disabled>Ok</button>
+			        	  <button type="submit" id="okChartButton" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="createChart()" disabled>Ok</button>
 			    	  </div>
 			    	  <div class="rightButton">
 			              <button type="submit" class="btn btn-lg btn-danger btn-block" data-dismiss="modal" onClick="resetChartForm()">Cancel</button>
@@ -859,10 +919,7 @@
 			          	<div id="mapSearchExtent">			          		
 			          			<!-- Add map with javascript -->
 			          	</div>	
-			          	<div class="btn-group" id="searchFormGroupButtons" role="group" aria-label="...">
-			          	  <button type="button" id="enableControlDraw" title="Draw Rectangle" class="btn btn-md btn-default" onClick="enableControl()" style="margin-right: 4px"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>	        
-			          	  <button type="button" id="resetExtentButton" class="btn btn-md btn-default" onClick="resetPolygonBox()" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
-			          	</div>
+			        
 			          </div>			     
 			          
 			          <h3 class="form-signin-heading">Endpoint Information</h3>
@@ -1017,10 +1074,7 @@
 			          	<div id="mapSearchExtentGEOSS">			          		
 			          			<!-- Add map with javascript -->
 			          	</div>	
-			          	<div class="btn-group" id="searchFormGroupButtonsGEOSS" role="group" aria-label="...">
-			          	  <button type="button" id="enableControlDrawGEOSS" title="Draw Rectangle" class="btn btn-md btn-default" onClick="enableControlGEOSS()" style="margin-right: 2px"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>	        
-			          	  <button type="button" id="resetExtentButtonGEOSS" class="btn btn-md btn-default" onClick="resetPolygonBoxGEOSS()" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
-			          	</div>
+			          	
 			          </div>			     
 			          
 			          <div class="leftButton">
@@ -1766,8 +1820,6 @@
 				          			<!-- Add map with javascript -->
 				          	</div>	
 				          	<div class="btn-group" id="searchFormGroupButtonsFilter" role="group" aria-label="...">
-				          	  <button type="button" id="enableControlDrawFilter" title="Draw Rectangle" class="btn btn-md btn-default" onClick="enableControlFilter()" style="margin-right: 2px"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>	        
-				          	  <button type="button" id="resetExtentButtonFilter" class="btn btn-md btn-default" onClick="resetPolygonBoxFilter()" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
 				          	</div>
 				          </div>
 		        
@@ -1796,7 +1848,17 @@
 		    </div>
       </div> 
       
-      <!-- Map and Timeline components -->        
+      <!-- Map and Timeline components -->
+      <div id="popup" class="ol-popup">
+	      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+	      <div id="popupTitle"></div>
+	      <div id="popup-content">
+	      	<table class="table table-striped">
+	      		<tbody id="popupTable">
+	      		</tbody>
+	      	</table>
+	      </div>
+	  </div>        
       <div id="map_canvas">      		
       
       	  <!-- Alert messages -->
@@ -1858,6 +1920,15 @@
 	      <div class="alert alert-danger" role="alert" id="alertSpatialFilterNoValue" style="display: none;">
 	          <strong>Error!</strong> Please provide an area of interest to apply filter.
 	      </div>
+	      <div class="alert alert-danger" role="alert" id="alertWMSLayerNoValue" style="display: none;">
+	          <strong>Error!</strong> The layer does not exist.
+	      </div>
+	      <div class="alert alert-danger" role="alert" id="alertMsgFailCRS" style="display: none;">
+	          
+	      </div>
+	      <div class="alert alert-danger" role="alert" id="alertMsgBingKey" style="display: none;">
+	          <strong>Error!</strong> A key is needed to use BingMaps [<a href="https://msdn.microsoft.com/en-us/library/ff428642.aspx" target="_blank">Get a new key</a>].
+	      </div>
 	      
 	      <div class="alert alert-success" role="alert" id="alertMsgDelLayer" style="display: none;">
 	          <strong>Well done!</strong> You successfully deleted the layer.
@@ -1900,11 +1971,6 @@
       </div>
       
       <div id="coordinates"></div>
-      
-      <div class="btn-group-vertical" id="userDefinedData" role="group" aria-label="...">
-      	<button type="button" id="drawPoint" title="Draw Point" class="btn btn-xs btn-default" onClick="userAddPoint()" style="margin-bottom: 4px"><i class="fa fa-map-marker fa-lg"></i></button>	       
-		<button type="button" id="drawRectangle" title="Draw Rectangle" class="btn btn-xs btn-default" onClick="userDrawPolygon()"><i class="fa fa-pencil-square-o fa-lg"></i></button>	        	  
-	  </div>
       
       <div id="tmContainer">
 	  	  <div id="timeline"></div>
@@ -2029,7 +2095,7 @@
 				  	  <dt>Endpoint:</dt>
 				  	  <dd id="infoEndpoint"></dd>
 				  	  <dt>Number of layers:</dt>
-				  	  <dd id="infoNumOfLayers">1</dd>
+				  	  <dd id="infoNumOfLayers">0</dd>
 				  	  <dt>Number of charts:</dt>
 				  	  <dd id="infoNumOfCharts">0</dd>
 				  	  <dt>Date of creation:</dt>

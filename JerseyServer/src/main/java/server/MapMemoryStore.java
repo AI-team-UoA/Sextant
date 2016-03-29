@@ -110,7 +110,7 @@ public class MapMemoryStore {
 	
 	public void saveLayer(int layerNumber, String query, String pathtokml, String layerName, 
 							String endpointURI, String polyStyleColor, String lineStyleColor,
-							String IconRef, Double scale, boolean isTemporal, String imageBox, 
+							String IconRef, Double scale, boolean isTemporal, String imageBox, String type,
 							String title, String creator, String license, String theme,
 							String createDate, String modifyDate, String geosparql, String description) {
 		
@@ -187,6 +187,10 @@ public class MapMemoryStore {
 			if (imageBox!=null && !imageBox.equals("")){
 				Literal imageBoxUri = f.createLiteral(imageBox);
 				con.add(layerId, MapVocabulary.HASIMAGEBOX, imageBoxUri);
+			}
+			if (type!=null && !type.equals("")){
+				Literal typeUri = f.createLiteral(type);
+				con.add(layerId, MapVocabulary.HASLAYERTYPE, typeUri);
 			}
 			
 			if ( (endpointURI!=null && !endpointURI.equalsIgnoreCase("")) && (query!=null && !query.equalsIgnoreCase(""))){ /*null values when loading a KML file*/
