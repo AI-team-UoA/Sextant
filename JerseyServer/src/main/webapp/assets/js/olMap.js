@@ -65,6 +65,8 @@ var colorSpinDescribe = '#7E7E7E';
  */
 var bingMapsKey = null;
 var bingMap = null;
+var bingAerialLabels = null;
+var bingRoads = null;
 
 var baseOSM = new ol.layer.Tile({
     preload: Infinity,
@@ -170,6 +172,22 @@ function initMap(results, status, jqXHR) {
 		    source: new ol.source.BingMaps({
 		      key: bingMapsKey,
 		      imagerySet: 'Aerial',
+		    })
+		});
+		
+		bingAerialLabels = new ol.layer.Tile({
+		    preload: Infinity,
+		    source: new ol.source.BingMaps({
+		      key: bingMapsKey,
+		      imagerySet: 'AerialWithLabels',
+		    })
+		});
+		
+		bingRoads = new ol.layer.Tile({
+		    preload: Infinity,
+		    source: new ol.source.BingMaps({
+		      key: bingMapsKey,
+		      imagerySet: 'Road',
 		    })
 		});
 	}
