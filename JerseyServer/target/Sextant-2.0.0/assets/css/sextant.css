@@ -20,12 +20,13 @@ body {
 
 #coordinates {
 	position: absolute;
-	top: 70px;
-	left: 120px;
+	top: 60px;
+	left: 60px;
 	z-index: 1;
 	color: #FFCC66;
 	font-size: 16px;
 	font-weight: bold;
+	width: 200px
 }
 
 #userDefinedData {
@@ -39,11 +40,11 @@ body {
 	height: 28px;
 }
 
-#searchMapExtentForm, #searchMapExtentFormGEOSS {
+#searchMapExtentForm, #searchMapExtentFormGEOSS, #searchMapExtentFormFilter {
 	height: 30%;
 }
 
-#searchFormGroupButtons, #searchFormGroupButtonsGEOSS {
+#searchFormGroupButtons, #searchFormGroupButtonsGEOSS, #searchFormGroupButtonsFilter {
 	position: absolute;
 	top: 7%;
 	right: 5%;
@@ -68,7 +69,7 @@ body {
 	top: 0;
 	right: 0;
 	z-index: 1000;
-	background-color: white;
+	background-color: rgba(255, 255, 255, 1);
 }
 
 #sextantPanels {
@@ -77,7 +78,7 @@ body {
 	height:90%;
 	right: 0;
 	top: 51px;
-	background-color: white;
+	background-color: rgba(255, 255, 255, 1);
 	overflow-y: auto;
 }
 
@@ -98,14 +99,6 @@ body {
 	width: 40px;
 	height: 50px;
 	bottom: 22%;
-	right: 99%;
-}
-
-#animateSwefsPanelButton {
-	position: absolute;
-	width: 40px;
-	height: 50px;
-	bottom: 100px;
 	right: 99%;
 }
 
@@ -326,46 +319,50 @@ body {
 
 #goLeft {
 	position: absolute;
-	top: 35px;
+	top: 10px;
 	left: 10px;
 	z-index: 50;
 }
 
 #goRight {
 	position: absolute;
-	top: 35px;
+	top: 10px;
 	left: 90px;
 	z-index: 50;
 }
 
 #playTimeline {
 	position: absolute;
-	top: 35px;
+	top: 10px;
 	left: 50px;
 	z-index: 50;
 }
 
-#currentTime {
+#timelineInfo {
 	position: absolute;
-	top: 10px;
-	left: 10px;	
+	top: -36px;
+	left: 25px;	
 	z-index: 50;
+	border-radius: 15px 15px 0px 0px;
+    background: rgba(255, 255, 255, 0.6);
+    height: 36px;
+    width: 390px;
+    text-align: center;
+    border-style: solid;
+    border-width: 1px;
+    border-color: lightgrey;
 }
 
 #days {
 	position: absolute;
-	top: 65px;
+	top: 40px;
 	left: 10px;
 	width: 115px;
 	z-index: 50;
 }
 
 #helpTimeline {
-	position: absolute;
-	top: 110px;
-	left: 10px;
-	width: 75px;
-	z-index: 50;
+	padding-top: 2px;
 }
 
 /* Adjust Menu colors - Normal */
@@ -592,4 +589,161 @@ img.evtIcon {
 	font-weight: bold;
 	padding: auto;
 	color: #008ae6;
+}
+
+.popover-content {
+	padding: 5px;
+}
+
+#animateStatsPanelButton {
+	position: absolute;
+	width: 40px;
+	height: 50px;
+	bottom: 30%;
+	right: 99%;
+}
+
+#statsContainer {
+	position: absolute;
+	width: 100%;
+	height: 36%;
+	top: 64%;	
+	background-color: rgba(255, 255, 255, 0.4);
+}
+
+#selectChartAttr {
+	position: absolute;
+	width:35%;
+	top: 5%;
+	left: 13px;
+}
+
+#statsChart {
+	position: absolute;
+	width: 72%;
+	height: 90%;
+	right: 60px;
+	bottom:5%;
+	
+	border-radius: 10px 10px 10px 10px;
+    
+    border-style: solid;
+    border-width: 2px;
+    border-color: lightgrey;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+#myNewStatsCanvas {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	padding: 10px;
+}
+
+#downloadStatChart {
+	position: absolute;
+	width: 6%;
+	height: 22%;	
+	left: 9.5%;
+	bottom: 20%;
+}
+
+.dragdealer {
+	position: absolute;
+	left: 4%;
+	top: 35%;
+	
+	height: 14px;
+	width: 18%;
+	border-radius: 25px;
+	background: #eee;
+}
+
+.dragdealer .move-bar {
+  	height: 36px;
+  	width: 16px;
+    border-radius: 5px;
+    top: -11px;
+    background: rgb(50, 50, 50);
+}
+
+.timeline-band-0 .timeline-ether-bg {
+    background-color: rgba(255,255,255,0.6);
+}
+
+.timeline-band-1 .timeline-ether-bg {
+    background-color: rgba(125,125,125,0.6);
+}
+
+.timeline-date-label {
+	color: black;
+	font-size: 15px;
+}
+
+#currentTime {
+	padding-top: 6px;
+	font-size: 15px;		
+}
+
+.ol-zoom {
+	top: 70px;
+	left: 20px;
+}
+
+.ol-popup {
+        position: absolute;
+        background-color: white;
+        border-radius: 5px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -200px;
+        width: 400px;
+        height: 220px;
+}
+.ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+}
+.ol-popup:after {
+        border-top-color: white;
+        border-width: 10px;
+        left: 200px;
+        margin-left: -10px;
+}
+.ol-popup:before {
+        border-top-color: #cccccc;
+        border-width: 11px;
+        left: 200px;
+        margin-left: -11px;
+}
+.ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 6px;
+        right: 10px;
+}
+.ol-popup-closer:after {
+        content: "✖";
+}
+      
+#popup-content {
+	padding: 5%;
+	overflow: scroll;
+	width: 90%;
+	height: 85%;
+}
+
+#popupTitle {
+	width: auto;
+	font-size: 18px; 
+	font-weight: bold;
+	padding: auto;
+	color: #008ae6;
+	margin-left: 20px;
+	margin-top: 10px;
 }

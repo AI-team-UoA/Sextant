@@ -1,6 +1,3 @@
-var mapSearch;
-var drawControl;
-var boxLayer = null;
 var hostSearch, endpointSearch, portSearch;
 var selectedMapId;
 
@@ -9,48 +6,20 @@ function initSearchMap() {
 	document.getElementById('drawExtentButton').disabled = true;
 	
 	//Initialize map
-	mapSearch = new OpenLayers.Map('mapSearchExtent');
+	mapFilter = new ol.Map({
+        layers: [base, vector],
+        target: 'mapSearchExtent',
+        view: new ol.View({
+          center: center,
+          zoom: 6
+        })
+    });
 	
-	var ghyb = new OpenLayers.Layer.Google("Google Hybrid",
-            {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 15, visibility: false}
-            );
-	mapSearch.addLayers([ghyb]);
-	mapSearch.setBaseLayer(ghyb);
+	document.getElementsByClassName('ol-zoom')[0].style.top = '10px';
+	document.getElementsByClassName('ol-zoom')[0].style.left = '10px';
+   
+    addInteraction();
 	
-	mapSearch.setCenter(new OpenLayers.LonLat(23.72275, 37.92253).transform(new OpenLayers.Projection("EPSG:4326"), mapSearch.getProjectionObject()), 6, true, true);
-	mapSearch.projection = WGS84_google_mercator;
-	mapSearch.displayProjection = new OpenLayers.Projection("EPSG:4326");
-	
-	//Add draw box contols
-	boxLayer = new OpenLayers.Layer.Vector("Box layer");
-	mapSearch.addLayer(boxLayer);
-	drawControl = new OpenLayers.Control.DrawFeature(boxLayer,
-	                                                     OpenLayers.Handler.RegularPolygon, 
-	                                                     { 
-															eventListeners: {'featureadded': newPolygonAdded},
-											      			handlerOptions: {
-											      				sides: 4,
-										                        irregular: true
-											      			}
-	                                                     });
-	mapSearch.addControl(drawControl);
-}
-
-function enableControl() {
-	drawControl.activate();
-	//document.getElementById('enableControlDraw').style.border = 'solid red';
-	document.getElementById("enableControlDraw").style.borderColor = "red";
-}
-
-function newPolygonAdded() {
-	drawControl.deactivate();
-	//document.getElementById('enableControlDraw').style.border = 'none';
-	document.getElementById("enableControlDraw").style.borderColor = '#ccc';	
-}
-
-function resetPolygonBox() {
-	boxLayer.removeAllFeatures();
-	drawControl.deactivate();
 }
 
 function resetSearchMapForm() {
@@ -63,7 +32,8 @@ function resetSearchMapForm() {
 	}
 	
 	document.getElementById('mapSearchForm').reset();
-	boxLayer = null;
+	
+	vector.getSource().clear();
 }
 
 function getMapSearchResults() {
@@ -106,10 +76,8 @@ function getMapSearchResults() {
 	}
 	
 	var extent = 'none';
-	if (boxLayer != null) {
-		if (boxLayer.getDataExtent() != null) {		
-			extent = mapExtentToWKTLiteral(boxLayer.getDataExtent().transform(WGS84_google_mercator, WGS84).toString());
-		}
+	if (vector.getSource().getFeatures().length > 0) {		
+		extent = mapExtentToWKTLiteral(ol.proj.transformExtent(vector.getSource().getExtent(), 'EPSG:3857', 'EPSG:4326'));			
 	}
 	
 	var data = searchTitle + '$' + searchCreator + '$' + searchLicense + '$' + searchTheme + '$' + extent;

@@ -630,11 +630,11 @@ function parseChartData(results, status, jqXHR) {
 function renderChart(preRendChart, itterator) {
 	if (preRendChart.type === 'Bar chart') { 
 		var chartTemp = barChartTemplate(preRendChart.chart, preRendChart.chart.results); 
-		addDataToBarChart(preRendChart.chart, chartTemp, preRendChart.chart.results, preRendChart.freeDimension, itterator);
+		addDataToChart(preRendChart.chart, chartTemp, preRendChart.chart.results, preRendChart.freeDimension, itterator);
 	}
 	if (preRendChart.type === 'Line chart') { 
 		var chartTemp = lineChartTemplate(preRendChart.chart, preRendChart.chart.results); 
-		addDataToBarChart(preRendChart.chart, chartTemp, preRendChart.chart.results, preRendChart.freeDimension, itterator);
+		addDataToChart(preRendChart.chart, chartTemp, preRendChart.chart.results, preRendChart.freeDimension, itterator);
 	}
 }
 

@@ -15,13 +15,13 @@ function loadMenu() {
 	'          <ul class="dropdown-menu" role="menu">'+
 	'            <li><a href="./manual.html">Screen Layout</a></li>'+
 	'            <li><a href="./zoomMap.html">Zoom on map</a></li>'+                	            
-	'            <li><a href="./userInfo.html">Add POIs and AOIs</a></li>'+
 	'            <li><a href="./cursor.html">Cursor position</a></li>'+
 	'            <li><a href="./showAll.html">Show/Hide all Layers</a></li>'+
 	'            <li><a href="./zoomAll.html">Zoom to all Layers</a></li>'+
 	'            <li><a href="./baseMap.html">Select base map</a></li>'+
 	'            <li><a href="./showMainPanel.html">Show/Hide main panel</a></li>'+
 	'            <li><a href="./showTimeline.html">Show/Hide Timeline</a></li>'+
+	'            <li><a href="./showStats.html">Show/Hide Feature charts</a></li>'+
 	'            <li><a href="./proxy.html">Proxy server</a></li>'+
 	'          </ul>'+
 	'        </li>'+
@@ -30,7 +30,7 @@ function loadMenu() {
 	'            <ul class="dropdown-menu" role="menu">'+
 	'                <li class="dropdown-header"><b>Create new Layer</b></li>'+
 	'                <li><a href="./KML.html">KML</a></li>'+
-	'                <li><a href="./GML.html">GML</a></li>'+
+	'                <li><a href="./JSON.html">JSON</a></li>'+
 	'                <li><a href="./image.html">Image</a></li>'+
 	'                <li><a href="./WMS.html">WMS</a></li>'+
 	'                <li><a href="./querySPARQL.html">Query SPARQL Endpoint</a></li>'+
@@ -48,6 +48,7 @@ function loadMenu() {
 	'                <li><a href="./moveTop.html">Move on top</a></li>'+
 	'                <li><a href="./download.html">Download</a></li>'+
 	'                <li><a href="./delete.html">Delete</a></li>'+
+	'                <li><a href="./statsChart.html">Create Feature Chart</a></li>'+
 	'                <li class="divider"></li>'+
 	'            	 <li class="dropdown-header"><b>Timeline-Temporal Layers</b></li>'+
 	'            	 <li><a href="./moveTimeline.html">Move Timeline</a></li>'+
@@ -66,7 +67,6 @@ function loadMenu() {
 	'        	  <a class="dropdown-toggle" data-toggle="dropdown">Extra Functionality</a>'+
 	'            <ul class="dropdown-menu" role="menu">'+
 	'                <li><a href="./explore.html">Explore</a></li>'+
-	'                <li><a href="./GEOSS.html">GEOSS portal</a></li>'+
 	'                <li><a href="./statistical.html">Statistical Charts</a></li>'+
 	'            </ul>'+
 	'        </li>'+

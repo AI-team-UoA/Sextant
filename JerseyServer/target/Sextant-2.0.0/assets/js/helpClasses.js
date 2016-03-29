@@ -147,3 +147,11 @@ var eventWMSinfo = function (lonlat, event) {
 	this.lonlat = lonlat;
 	this.event = event;
 };
+
+var styleFilter = function(startInterval, endInterval, dataType, color, attrName) {
+	this.startInterval = startInterval;
+	this.endInterval = endInterval;
+	this.dataType = dataType;
+	this.color = color;
+	this.attrName = attrName;
+};

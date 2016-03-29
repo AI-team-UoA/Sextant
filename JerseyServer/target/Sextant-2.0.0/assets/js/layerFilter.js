@@ -1,3 +1,38 @@
+function initSearchMapFilter() {
+	document.getElementById('searchMapExtentFormFilter').style.display = 'block';
+	document.getElementById('drawExtentButtonFilter').disabled = true;	
+		
+	//Initialize map
+	mapFilter = new ol.Map({
+        layers: [base, vector],
+        target: 'mapExtentFilter',
+        view: new ol.View({
+          center: center,
+          zoom: 6
+        })
+    });
+	
+	document.getElementsByClassName('ol-zoom')[0].style.top = '10px';
+	document.getElementsByClassName('ol-zoom')[0].style.left = '10px';
+   
+    addInteraction();
+}
+
+function resetFilterMapForm() {	
+	var divRef = document.getElementById('mapExtentFilter');
+	
+	while (divRef.firstChild) {
+		divRef.removeChild(divRef.firstChild);
+	}	
+	
+	document.getElementById('searchMapExtentFormFilter').style.display = 'none';
+	document.getElementById('drawExtentButtonFilter').disabled = false;
+	
+	document.getElementById('filterSearchForm').reset();
+	
+	vector.getSource().clear();
+}
+//////////////////////////
 function setFilters(name) {
 	document.getElementById('layerID').innerHTML = name;
 	enableCountriesLayer();	
@@ -11,31 +46,54 @@ function applySpatialFilterLayer() {
 	var filterValueRegionUnit = document.getElementById('layerSpatialFilterValue3').options[document.getElementById('layerSpatialFilterValue3').selectedIndex].value;	
 	var filterValueCity = document.getElementById('layerSpatialFilterValue4').options[document.getElementById('layerSpatialFilterValue4').selectedIndex].value;	
 	
+	var extent = 'null';
 	var filterPlace = getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity);
 	var filterValue = getBBOX(filterPlace, 'bbox');
 	
-	if (filterValue != ',,,') {
-		var layer = map.getLayersByName(name)[0];
-		var features = layer.features;
+	if (filterValue != null) {
+		extent = filterValue;
+		extent = ol.proj.transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
+	}
+	else if(vector.getSource().getFeatures().length > 0) {			
+		extent = vector.getSource().getExtent();					
+	}
+	
+	//console.log(extent);
 		
-		for(var i=0; i< features.length; i++) {			
-			var featureBounds = new OpenLayers.Bounds(features[i].geometry.getBounds().toArray());
-			featureBounds = featureBounds.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-			
-	        if(!filterValue.intersectsBounds(featureBounds)) {
-	        	features[i].style = new OpenLayers.Style();	        	
-	        	features[i].style.fillColor = '#A0A0A0';
-	        	features[i].style.strokeColor = '#A0A0A0';
-	        	features[i].style.strokeWidth = 1;
-	        	features[i].style.strokeOpacity = 1;
-	        	features[i].style.fillOpacity = 0.3;
-	        	features[i].style.externalGraphic = '';
-	        }
-	        else {
-	        	features[i].style = null;
-	        }
-	    }
-	    layer.redraw();
+	if (extent != 'null') {	
+		var selectedLayer = null;
+		map.getLayers().forEach(function(layer) {
+        	if (layer.get('title') == name) {
+        		selectedLayer = layer;
+        	}
+        });
+		
+		var layerExtent = selectedLayer.getSource().getSource().getExtent();
+		if (!ol.extent.intersects(extent, layerExtent)) {
+			var newStyle = new ol.style.Style({
+				stroke: new ol.style.Stroke({
+			        color: [160, 160, 160, 1],
+			        width: 1
+			    }),
+			    fill: new ol.style.Fill({
+			        color: [160, 160, 160, 0.4]
+			    }),
+			    image: new ol.style.Circle({
+		    	    fill: new ol.style.Fill({
+		    	      color: [160, 160, 160, 0.4]
+		    	    }),
+		    	    radius: 5,
+		    	    stroke: new ol.style.Stroke({
+		    	      color: [160, 160, 160, 1],
+		    	      width: 1
+		    	    })
+		    	})
+			});
+			selectedLayer.getSource().setStyle(newStyle);
+		}
+		else {
+			selectedLayer.getSource().setStyle(defaultVectorStyle);
+		}
 		
 		document.getElementById('alertApplySpatialFilter').style.display = 'block';
 		setTimeout(function() {$('#alertApplySpatialFilter').fadeOut('slow');}, fadeTime);	
@@ -50,14 +108,12 @@ function applySpatialFilterLayer() {
 
 function clearSpatialFilterLayer() {
 	var name = document.getElementById('layerID').innerHTML;
-	var layer = map.getLayersByName(name)[0];
-	var features = layer.features;
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == name) {
+    		layer.getSource().setStyle(defaultVectorStyle);
+    	}
+    });
 	
-	//Show all features of the layer
-	for(var i=0; i< features.length; i++) {
-        features[i].style = null;     
-    }
-    layer.redraw();
     clearLayerSpatialFilterForm();
     
 	document.getElementById('alertClearSpatialFilter').style.display = 'block';
@@ -152,5 +208,7 @@ function clearLayerSpatialFilterForm() {
 	document.getElementById('layerSpatialFilterValue2').disabled = true;
 	document.getElementById('layerSpatialFilterValue3').disabled = true;
 	document.getElementById('layerSpatialFilterValue4').disabled = true;
+	
+	resetFilterMapForm();
 }
 

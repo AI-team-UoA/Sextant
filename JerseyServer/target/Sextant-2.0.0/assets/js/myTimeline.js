@@ -55,7 +55,19 @@ function initTimeline() {
 	updateCurrentTime();
 	
 	Timeline.OriginalEventPainter.prototype._showBubble = function(x, y, evt) {
-		   onFeatureSelectTimeline(map.getLayersByName(evt._obj.title)[0].getFeatureById(evt._obj.featureID));
+		var tempLayer = null;
+		map.getLayers().forEach(function(layer) {
+	    	if (layer.get('title') == evt._obj.title) {
+	    		tempLayer = layer;
+	    	}
+	    });
+		var tempFeatures = tempLayer.getSource().getSource().getFeatures();
+		for (var i=0; i<tempFeatures.length; i++) {
+			if (tempFeatures[i] == evt._obj.featureID) {
+				onFeatureSelectTimeline(tempFeatures[i], tempLayer);
+				break;
+			}
+		}		
 	};
 }
 
@@ -66,14 +78,14 @@ function initTimeline() {
  */
 function parseTimelineFeatures(layer, uri) {
 	$.get(uri, function(data) {
-		var features = layer.features;
+		var features = layer.getSource().getSource().getFeatures();		
 		var position = 0;
 		for (var i=0; i<mapLayers.length; i++) {
-			if (mapLayers[i].name == layer.name) {
+			if (mapLayers[i].name == layer.get('title')) {
 				position = i;
 				break;
 			}
-		}	
+		}
 		
 		//Parse XML document to extract time features
 		var pms = data.getElementsByTagName('Placemark');
@@ -87,11 +99,11 @@ function parseTimelineFeatures(layer, uri) {
             	end = '2500-01-01T00:00:00';
             }
             
-            var featureID = features[i].id;
+            var featureID = features[i]; 
             var icon = mapLayers[position].icon;
             var color = mapLayers[position].fillColor;
             
-            var tf = new TempFeature(layer.name, featureID, layer.name, when, begin, end, icon, color, false);
+            var tf = new TempFeature(layer.get('title'), featureID, layer.get('title'), when, begin, end, icon, color, false);
             temporalFeatures.push(tf);
         }
 		addEventsTimeline(layer);
@@ -118,16 +130,16 @@ function addEventsTimeline(layer) {
 	var eventList = [];
 	var startDate = new Date();
 	for (var i=0; i<temporalFeatures.length; i++) {
-		if (layer.name == temporalFeatures[i].layerName && temporalFeatures[i].dirty == false) {
+		if (layer.get('title') == temporalFeatures[i].layerName && temporalFeatures[i].dirty == false) {
 			var newEvent;
-			var description = layer.getFeatureById(temporalFeatures[i].featureID).attributes.description;
+			//var description = layer.getFeatureById(temporalFeatures[i].featureID).attributes.description;
 			
 			if (temporalFeatures[i].when != null) {
 				newEvent = {'start' : temporalFeatures[i].when,
 							'durationEvent' : false,
-							'title' : layer.name,
-							'description' : description,
-							'eventID' : layer.name,
+							'title' : layer.get('title'),
+							'description' : '',
+							'eventID' : layer.get('title'),
 							'textColor' : '#000000',
 							'icon' : temporalFeatures[i].icon,
 							'featureID' : temporalFeatures[i].featureID};	
@@ -140,9 +152,9 @@ function addEventsTimeline(layer) {
 				newEvent = {'start' : temporalFeatures[i].begin,
 							'end' : temporalFeatures[i].end,
 							'durationEvent' : true,
-							'title' : layer.name,
-							'description' : description,
-							'eventID' : layer.name,
+							'title' : layer.get('title'),
+							'description' : '',
+							'eventID' : layer.get('title'),
 							'textColor' : '#000000',
 							'color' : temporalFeatures[i].color,
 							'featureID' : temporalFeatures[i].featureID};
@@ -183,13 +195,18 @@ function computeVisibility(begin, end, evt) {
 	var evtEnd = evt._end.getTime();
 	var layerName = evt._eventID;
 	
-	var temp = map.getLayersByName(layerName);
+	var temp = null;
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == layerName) {
+    		temp = layer;
+    	}
+    }); 
     
     if (eventInsideBand(begin, end, evtStart, evtEnd) == true) {
-        temp[0].setVisibility(true);
+        temp.setVisible(true);
     }
     else{
-        temp[0].setVisibility(false);
+        temp.setVisible(false);
     }
 }
 
@@ -321,113 +338,34 @@ function deleteTimelineEvents(name) {
 /**
  * Function handler for a click event on a feature of the timeline.
  */
-function onFeatureSelectTimeline(feature) {	
-	if (typeof feature.cluster != 'undefined') {
-		if(feature.cluster.length > 1) {
-			return ;  
+function onFeatureSelectTimeline(feature, layer) {	
+	//Zoom to layer
+	map.getView().fit(layer.getSource().getSource().getExtent(), map.getSize());
+	
+	//Clear popups
+	clearPopup();
+	
+	//Clear selected features and add the new one
+	//mapSelectInterraction.getFeatures().clear();
+	//mapSelectInterraction.getFeatures().push(feature);
+	clearOverlayFeatures();
+	var overlayFeature = feature.clone();
+    featureOverlay.getSource().getSource().addFeature(overlayFeature);
+	
+	//Create popup on the selected feature
+	var featureCenter = feature.getGeometry().getExtent();
+	var coordinate = [(featureCenter[0]+featureCenter[2])/2, (featureCenter[1]+featureCenter[3])/2];
+	content.innerHTML = '';
+	
+    for (var key in feature.getProperties()) {
+		if (key != 'description' && key != 'geometry' && key != 'name') {
+			content.innerHTML += '<tr><td><b>'+key+'</b></td><td>'+feature.getProperties()[key]+'</td></tr>';
+		}
+		if (key == 'name') {
+			document.getElementById('popupTitle').innerHTML = feature.getProperties()[key];
 		}
 	}
-	else {	
-		popupClose(0);
-		
-		clickTimeline = true;
-		lonLat = feature.geometry.getBounds().getCenterLonLat();
-		
-		for (var i=0; i<map.controls.length; i++){
-			if (map.controls[i].displayClass == "olControlSelectFeature") {
-				map.controls[i].select(feature);
-				break;
-			}
-		}
-	}		
-}
-
-/**
- * Function handler when a balloon is closed.
- */
-var popupCloseTrigger = false;
-function popupClose(mode) {
-	
-	//UI close button trigger
-	if (mode == 1) {
-		popupCloseTrigger = true;
-	}
-	
-	if (currentFeature != null) {
-		if (typeof currentFeature.cluster != 'undefined') {
-			if(currentFeature.cluster.length > 1) {
-				return ;  
-			}
-		}
-		else {	
-			if (currentFeature.popup) {
-				map.removePopup(currentFeature.popup);
-				currentFeature.popup = null;
-				
-				if (mode != 2) {
-					for (var i=0; i<map.controls.length; i++){
-						if (map.controls[i].displayClass == "olControlSelectFeature") {
-							map.controls[i].unselect(currentFeature);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	if (popupWMS != null) {
-		map.removePopup(popupWMS);
-	}
-	
-	//Map zoom change trigger
-	if (mode != 2) {
-		currentFeature = null;
-		popupWMS = null;
-	}
-	
-	if (clickTimeline) {
-		clickTimeline = false;
-	}
-}
-
-function resetPositionPopup() {
-	popupClose(2);
-	
-	if (currentFeature != null) {
-		//Feature popup
-		var title = currentFeature.attributes.name;
-		var jsonObj = currentFeature.attributes;
-		var content = '<table class="table table-striped"><tbody>';
-		for (var key in jsonObj) {
-			if (key != 'description' && key != 'name' && key != 'deleteFeatureButton') {
-				content += '<tr><td><b>'+key+'</b></td><td>'+jsonObj[key]+'</td></tr>';
-			}
-		}
-		content += '</tbody></table>';
-		if (typeof(currentFeature.attributes.deleteFeatureButton) != 'undefined') {
-			content += currentFeature.attributes.deleteFeatureButton;
-		}	
-		var popup = new OpenLayers.Popup.Popover(
-			    "customPopup",
-			    lonLat,
-			    content,
-			    title
-		);	
-		currentFeature.popup = popup;
-		map.addPopup(popup);
-	}
-	
-	
-	if (popupWMS != null) {
-		//WMS popup
-		popupWMS = new OpenLayers.Popup.Popover(
-	            "customPopup", 
-	            popupWMSevt.lonlat,
-	            popupWMSevt.event.text,
-	            "WMS Feature"
-	    );
-		addWMSpopup(popupWMSevt.event);
-	}
+    	        	        
+    overlay.setPosition(coordinate);
 }
 

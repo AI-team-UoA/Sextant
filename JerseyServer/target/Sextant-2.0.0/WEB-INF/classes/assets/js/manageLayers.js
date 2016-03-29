@@ -1,4 +1,5 @@
 var tempName;
+var testG;
 function addTableRow(name, typeF) {
     var tableRef = document.getElementById('layerTable').getElementsByTagName('tbody')[0];
     var newRow   = tableRef.insertRow(tableRef.rows.length);
@@ -22,13 +23,18 @@ function addTableRow(name, typeF) {
     element.id = "shBox" + name;
     element.onclick = function () {
         var box = document.getElementById("shBox"+name);
-	    var temp = map.getLayersByName(name);
+	    var temp = null;
+		map.getLayers().forEach(function(layer) {
+	    	if (layer.get('title') == name) {
+	    		temp = layer;
+	    	}
+	    }); 
 	    
 	    if (box.checked) {
-	        temp[0].setVisibility(true);
+	        temp.setVisible(true);
 	    }
 	    else{
-	        temp[0].setVisibility(false);
+	        temp.setVisible(false);
 	    }
 	    
     };
@@ -58,20 +64,32 @@ function addTableRow(name, typeF) {
     element.innerHTML = '<i class="fa fa-search-plus fa-lg"></i>';
     element.setAttribute("class", "btn btn-xs btn-default");  
     element.onclick = function () {
-    	popupClose(0);
-        var temp = map.getLayersByName(name);
-
-        if (typeF === "geotiff") {
-       		map.zoomToExtent(temp[0].extent);
-       	}
-       	else if (typeF === "wms"){
-       		zoomToBountyBoxWMS(name);
-       	}
-       	else {
-       		zoomToBountyBox(temp[0]);
-       	}
-        
-        showMap();
+        map.getLayers().forEach(function(layer) {
+        	if (layer.get('title') == name) {
+        		switch(typeF) {
+	        		case 'kml':
+	        			map.getView().fit(layer.getSource().getSource().getExtent(), map.getSize());
+	        			break;
+	        		case 'json':
+	        			map.getView().fit(layer.getSource().getSource().getExtent(), map.getSize());
+	        			break;
+	        		case 'geojson':
+	        			map.getView().fit(layer.getSource().getSource().getExtent(), map.getSize());
+	        			break;
+	        		case 'topojson':
+	        			map.getView().fit(layer.getSource().getSource().getExtent(), map.getSize());
+	        			break;
+	        		case 'geotiff':	        			
+	        			var parse = mapLayers[temp].imageBbox.split(',');
+	        			var extent = [Number(parse[2]), Number(parse[3]), Number(parse[4]), Number(parse[5])];
+	        			map.getView().fit(extent, map.getSize());
+	        			break;
+	        		case 'wms':
+	        			map.getView().fit(mapLayers[temp].imageBbox, map.getSize());
+	        			break;
+        		}
+        	}
+        });     
     };
 	groupButtons.appendChild(element);
     if (hasURI == 'null'){
@@ -168,7 +186,7 @@ function addTableRow(name, typeF) {
         showStylesForm(position);
     };
     groupButtons.appendChild(element);
-    if ( !((typeF === "kml") || (typeF === "gml")) || hasURI == 'null' ) {
+    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) || hasURI == 'null' ) {
     	element.disabled = true;
     }
     
@@ -192,7 +210,7 @@ function addTableRow(name, typeF) {
         createModalBody(mapLayers[position].features);
     };
     groupButtons.appendChild(element);
-    if ( !((typeF === "kml") || (typeF === "gml")) || hasURI == 'null' ) {
+    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) || hasURI == 'null' ) {
     	element.disabled = true;
     }
     
@@ -206,7 +224,7 @@ function addTableRow(name, typeF) {
         setFilters(name);       
     };   
     groupButtons.appendChild(element);
-    if ( !((typeF === "kml") || (typeF === "gml")) || hasURI == 'null' ) {
+    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) || hasURI == 'null' ) {
     	element.disabled = true;
     }
 
@@ -217,9 +235,15 @@ function addTableRow(name, typeF) {
     element.innerHTML = '<i class="fa fa-level-up fa-lg"></i>';
     element.setAttribute("class", "btn btn-xs btn-default");
     element.onclick = function () {
-        var temp = map.getLayersByName(name);
-        moveLayerOnTop(temp[0]);
-        showMap();
+        map.getLayers().forEach(function(layer) {
+        	if (layer.get('title') == name) {
+                layer.setZIndex(1);
+        	}
+        	else {
+        		layer.setZIndex(0);
+        	}
+        }); 
+        featureOverlay.setZIndex(5);
     };
     groupButtons.appendChild(element);
     if (hasURI == 'null') {
@@ -298,25 +322,6 @@ function deleteFinal() {
     document.getElementById('alertMsgDelLayer').style.display = 'block';
     setTimeout(function() {$('#alertMsgDelLayer').fadeOut('slow');}, fadeTime);
     
-    //For WMS layers remove the control for feature popups
-    var indexWMS = -1;
-    if (mapLayers[position].type == 'wms') {
-    	for (var i=0; i<infoWMS.length; i++) {
-    		if (infoWMS[i].layerName == mapLayers[position].name) {
-    			infoWMS[i].controlName.deactivate();    	
-    	    	map.removeControl(infoWMS[i].controlName);
-    	    	indexWMS = i;
-    	    	break;
-    		}
-    		if (indexWMS != -1) {
-        		infoWMS.splice(indexWMS, 1);
-    		}
-    	}
-    }
-    
-    //Close all popups
-    popupClose(0);
-    
     deleteLayer(tableRef, position, mapLayers[position].isTemp, tempName);
 }
 
@@ -328,8 +333,12 @@ function deleteLayer(tableRef, position, isTemp, name) {
     tableRef.deleteRow(position);
     
 	//Delete the layer from the map
-	var temp = map.getLayersByName(name);
-	map.removeLayer(temp[0], false);
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == name) {
+    		map.removeLayer(layer);
+    	}
+    }); 
+	
 	//Delete the layer's tabs from color panel
 	removeFromColorPanel(name, position);
     
@@ -345,49 +354,14 @@ function deleteLayer(tableRef, position, isTemp, name) {
     	deleteTimelineEvents(name);
     }
     
-    //Zoom to greece if there is no layer
-    if (mapLayers.length == 1){
-	    map.setCenter(new OpenLayers.LonLat(23.72275, 37.92253).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject()), 6, true, true);
-    }
-    
     //Show renewed last modification date and number of layers
     document.getElementById('infoNumOfLayers').innerHTML = mapLayers.length;
     
-    //Adjust bounds  
-	zoomToAll();
-}
-
-/**
- * Move layer on top of z-index 
- */
-function moveLayerOnTop(layer) {
-	for (var i=0; i<mapLayers.length; i++) {
-		var temp = map.getLayersByName(mapLayers[i].name);
-		map.setLayerIndex(temp[0], layersInitialNum + 1 + i);
-    }
-	map.setLayerIndex(layer, layersInitialNum + 1 + mapLayers.length );
-}
-
-/**
- * Create the contents of KML style feature modal
- */
-function createModalBody(featureNames) {
-	var divRef = document.getElementById('dynamicData');
-	
-	//Delete old values from dropdown list
-	while (divRef.firstChild) {
-		divRef.removeChild(divRef.firstChild);
-	}
-	
-	var name = featureNames.split(",");	
-	for (var i=0; i<name.length-1; i++) {
-		var element = document.createElement("option");
-		element.value = name[i];
-		element.innerHTML = name[i];
-		divRef.appendChild(element);
-	}   
-	
-	document.getElementById('color0').style.backgroundColor = colorTable[0];
+    resetStatsInfo(name);
+    
+    //CLose popup and clear selected features
+    mapSelectInterraction.getFeatures().clear();
+    clearPopup();
 }
 
 

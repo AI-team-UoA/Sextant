@@ -1,94 +1,97 @@
 /**
  * Zoom to all layers
  */
-function zoomToAll(operation) {	
-	showMap();
+function zoomToAll(mode) {	
+	var first = true;
+	var extent = null;
+	map.getLayers().forEach(function(layer) {
+		if (typeof(layer.get('title')) != 'undefined' && layer.get('title') != 'userInfo') {
+			if(first) {
+				if (getLayerType(layer.get('title')) != 'geotiff' && getLayerType(layer.get('title')) != 'wms') {
+					extent = layer.getSource().getSource().getExtent();
+		    		first = false;
+				}
+				else if (getLayerType(layer.get('title')) == 'geotiff') {
+					extent = getImageExtent(layer.get('title'));
+		    		first = false;
+				}
+				else {
+					//WMS
+					
+		    		first = false;
+				}
+	    		
+	    	}
+	    	else {
+	    		if (getLayerType(layer.get('title')) != 'geotiff' && getLayerType(layer.get('title')) != 'wms') {
+	    			ol.extent.extend(extent, layer.getSource().getSource().getExtent());
+				}
+				else if (getLayerType(layer.get('title')) == 'geotiff') {
+					ol.extent.extend(extent, getImageExtent(layer.get('title')));
+				}
+				else {
+					//WMS
+					
+				}
+	    		
+	    	}   
+		}   				
+    });
 	
-	var allLayersBounds = new OpenLayers.Bounds();
+	if(mode == 1) {
+		extent = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326');
+		return extent;
+	}
 	
-	if(mapLayers.length > 1) {
-		for (var i=0; i<mapLayers.length; i++) {
-	        var temp = map.getLayersByName(mapLayers[i].name);
-	
-	       	if (mapLayers[i].type === 'geotiff') {
-	           	allLayersBounds.extend(temp[0].extent);
-	       	}
-	       	else if (mapLayers[i].type === 'wms') {
-	       		allLayersBounds.extend(mapLayers[i].imageBbox);
-	       	}
-	       	else if (mapLayers[i].type != 'wms'){
-	           	allLayersBounds.extend(temp[0].getDataExtent());
-	       	}       
-	    }	
-		
-		if (!operation) {
-			map.zoomToExtent(allLayersBounds); 
-		}
-		return allLayersBounds.transform(WGS84_google_mercator, WGS84).toString();
+	if (extent != null) {
+		map.getView().fit(extent, map.getSize());
 	}
 }
 
-/**
- * Move to Manage Layers view
- */
-function showLayersMenu() {
-	document.getElementById('layerspage').style.zIndex = '10';	
-}
-
-/**
- * Move to Map Info view
- */
-function showMapMenu() {
-	document.getElementById('mapPage').style.zIndex = '10';	    
-}
-
-/**
- * Move to map/timeline view
- */
-function showMap() {
-	document.getElementById('map_canvas').style.zIndex = '5';	
-	
-    //Trick to refresh timeline because of a bug that makes it dissapear
-    if (isTimeMap) {
-    	document.getElementById('timeline').style.display = 'block';
-	    moveTimeLeft();
-	    moveTimeRight();
+function getLayerType(name) {
+	for (var i=0; i<mapLayers.length; i++) {
+        if (mapLayers[i].name == name) {
+            return mapLayers[i].type;
+        }
     }
-        
-    //Update the size of the map
-    map.updateSize();
-    refreshMap();	
+}
+
+function getImageExtent(name) {
+	for (var i=0; i<mapLayers.length; i++) {
+        if (mapLayers[i].name == name) {
+        	var parse = mapLayers[i].imageBbox.split(',');
+			var extent = [Number(parse[2]), Number(parse[3]), Number(parse[4]), Number(parse[5])];
+            return extent;
+        }
+    }
 }
 
 /**
  * Show all layers
  */
 function showAllLayers() {	
-    for (var i=0; i<mapLayers.length; i++) {
-    	var temp = map.getLayersByName(mapLayers[i].name);     	
-        temp[0].setVisibility(true);
-    	document.getElementById("shBox"+mapLayers[i].name).checked = true;
-    }   
+    map.getLayers().forEach(function(layer) {
+    	if(typeof(layer.get('title')) != 'undefined') {
+    		if (layer.get('title') != 'overlayStyle') {
+    			layer.setVisible(true);
+            	document.getElementById("shBox"+layer.get('title')).checked = true;
+    		} 		
+    	}   	
+    });
 }
 
 /**
  * Hide all layers
  */
 function hideAllLayers() {	
-    for (var i=0; i<mapLayers.length; i++) {
-        var temp = map.getLayersByName(mapLayers[i].name);
-        temp[0].setVisibility(false);
-        document.getElementById("shBox"+mapLayers[i].name).checked = false;
-    }   
-}
-
-/**
- * Hide time buttons if we choose simple map.
- */
-function hideTimeButtons() {
-    document.getElementById('moveLeft').style.display = 'none';
-    document.getElementById('moveRight').style.display = 'none';
-    document.getElementById('moveMetric').style.display = 'none';  
+    map.getLayers().forEach(function(layer) {
+    	if(typeof(layer.get('title')) != 'undefined') {
+    		if (layer.get('title') != 'overlayStyle') {
+    			layer.setVisible(false);
+            	document.getElementById("shBox"+layer.get('title')).checked = false;
+    		} 
+    	} 
+    });
 }
 
 function showColorPanel() {
@@ -97,49 +100,6 @@ function showColorPanel() {
 
 function closeColorPanel() {
 	document.getElementById('colorPanel').style.display = 'none';
-}
-
-function printAll() {
-	for (var i=0; i<mapLayers.length; i++) {
-		alert(mapLayers[i].name+' '+mapLayers[i].isTemp+' '+mapLayers[i].mapId+' '+mapLayers[i].imageBbox);
-	}
-}
-
-function refreshMap() {
-	//map.zoomIn();
-	//map.zoomOut();
-}
-
-/**
- * Show/hide Timeline
- */
-function showTimeline() {
-	document.getElementById('timeline').style.zIndex = '5';
-	document.getElementById('goLeft').style.zIndex = '6';
-	document.getElementById('goRight').style.zIndex = '6';
-	document.getElementById('days').style.zIndex = '6';
-}
-
-function hideTimeline() {
-	document.getElementById('timeline').style.zIndex = '-1';
-	document.getElementById('goLeft').style.zIndex = '-1';
-	document.getElementById('goRight').style.zIndex = '-1';
-	document.getElementById('days').style.zIndex = '-1';
-}
-
-/**
- * Expand/Shrink Timeline
- */
-function expandTimeline() {
-	document.getElementById('tmContainer').style.height = '60%';
-	document.getElementById('tmContainer').style.top = '40%';
-	showMap();
-}
-
-function shrinkTimeline() {
-	document.getElementById('tmContainer').style.height = '30%';
-	document.getElementById('tmContainer').style.top = '70%';
-	showMap();
 }
 
 /**
@@ -264,11 +224,10 @@ function mapExtentToWKTLiteral(bbox) {
  * @param bbox
  */
 function createPolygon(bbox) {
-	var parseBBOX = bbox.split(',');
-	var left = Number(parseBBOX[0]);
-	var bottom = Number(parseBBOX[1]);
-	var right = Number(parseBBOX[2]);
-	var top = Number(parseBBOX[3]);
+	var left = Number(bbox[0]);
+	var bottom = Number(bbox[1]);
+	var right = Number(bbox[2]);
+	var top = Number(bbox[3]);
 	
 	var polygon = 'POLYGON(('+bottom+' '+right+', '+
 							  bottom+' '+left+', '+
@@ -282,6 +241,7 @@ function createPolygon(bbox) {
 var animateLegend = 0;
 var animateTimeline = 0;
 var animateSwefs = 0;
+var animateStats = 0;
 function animateLegendPanel() {
 	if (animateLegend == 0) {	
 		document.getElementById('animatePanelButton').innerHTML = '<i class="fa fa-chevron-left fa-lg"></i>';
@@ -289,7 +249,11 @@ function animateLegendPanel() {
 		$("#legendPanel").animate({right: -($("#legendPanel").width())}, 500);		
 		animateLegend = 1;
 	}
-	else {		
+	else {
+		/*
+		if (animateStats == 1) {
+			animateStatsPanel();
+		}*/
 		document.getElementById('animatePanelButton').innerHTML = '<i class="fa fa-chevron-right fa-lg"></i>';
 		document.getElementById('animatePanelButton').title = 'Hide Panel';
 		$("#legendPanel").animate({right: 0}, 500);				
@@ -299,6 +263,9 @@ function animateLegendPanel() {
 
 function animateTimePanel() {
 	if (animateTimeline == 0) {	
+		if (animateStats == 1) {
+			animateStatsPanel();
+		}
 		document.getElementById('animateTimelineButton').innerHTML = '<i class="fa fa-chevron-right fa-lg"></i>';
 		document.getElementById('animateTimelineButton').title = 'Hide Timeline';
 		$("#tmContainer").animate({right: 0}, 500);		
@@ -309,6 +276,27 @@ function animateTimePanel() {
 		document.getElementById('animateTimelineButton').title = 'Show Timeline';
 		$("#tmContainer").animate({right: -($("#tmContainer").width())}, 500);				
 		animateTimeline = 0;
+	}
+}
+
+function animateStatsPanel() {
+	if (animateStats == 0) {
+		if (animateLegend == 0) {
+			animateLegendPanel();
+		}
+		if (animateTimeline == 1) {
+			animateTimePanel();
+		}
+		document.getElementById('animateStatsPanelButton').innerHTML = '<i class="fa fa-chevron-right fa-lg"></i>';
+		document.getElementById('animateStatsPanelButton').title = 'Hide Stats';
+		$("#statsContainer").animate({right: 0}, 500);		
+		animateStats = 1;
+	}
+	else {		
+		document.getElementById('animateStatsPanelButton').innerHTML = '<i class="fa fa-chevron-left fa-lg"></i>';
+		document.getElementById('animateStatsPanelButton').title = 'Show Stats';
+		$("#statsContainer").animate({right: -($("#statsContainer").width())-500}, 500);				
+		animateStats = 0;
 	}
 }
 
@@ -329,27 +317,40 @@ function animateSwefsPanel() {
 	}
 }
 
-function showNOA() {
-	document.getElementById('NOA').style.zIndex = '2000';
+var layerSet = false;
+function setBaseBing() {
+	if (bingMapsKey != null) {
+		document.getElementById('coordinates').style.color = '#FFCC66';	
+		map.getLayers().setAt(1, bingMap);
+		
+		if (!layerSet) {
+			map.addLayer(featureOverlay);
+			featureOverlay.setZIndex(5);
+			layerSet = true;
+		}
+	}
+	else {
+		document.getElementById('alertMsgBingKey').style.display = 'block';
+        setTimeout(function() {$('#alertMsgBingKey').fadeOut('slow');}, 10000);
+	}	
 }
 
-function closeNOA() {
-	document.getElementById('NOA').style.zIndex = '-100';
-}
-
-function baseGsat() {
-	map.setBaseLayer(gsat);
-	document.getElementById('coordinates').style.color = '#FFCC66';
-}
-
-function baseGmap() {
-	map.setBaseLayer(gmap);
-	document.getElementById('coordinates').style.color = '#A30052';
+function setBaseOSM() {
+	document.getElementById('coordinates').style.color = '#A30052';	
+	map.getLayers().setAt(1, baseOSM);
+		
+	if (!layerSet) {
+		map.addLayer(featureOverlay);
+		featureOverlay.setZIndex(5);
+		layerSet = true;
+	}
 }
 
 function baseGhyb() {
+	/*
 	map.setBaseLayer(ghyb);
 	document.getElementById('coordinates').style.color = '#FFCC66';
+	*/
 }
 
 function disableFeatures(disableAll, disableSaveMap) {

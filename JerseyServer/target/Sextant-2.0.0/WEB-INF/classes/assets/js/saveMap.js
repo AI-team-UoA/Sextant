@@ -22,9 +22,7 @@ function showLayerBox() {
 		element = document.createElement('label');
 		element.setAttribute('style', 'margin-right: 8px');
 	    element.appendChild(document.createTextNode(mapLayers[i].name));
-		divRef.appendChild(element);
-		
-		
+		divRef.appendChild(element);		
 	}
 	
 	var num = document.getElementById('mapIdType').length;
@@ -33,9 +31,6 @@ function showLayerBox() {
  	  	element.innerHTML = 'update existing map';
  	  	document.getElementById('mapIdType').appendChild(element);
  	}
- 	
- 	//Disable the checkbox for user data layer. This layer is always saved
- 	document.getElementById('selectBoxuserInfo').disabled = true;
 }
 
 function resetLayerSelection() {
@@ -106,7 +101,7 @@ function saveMapToEndpoint() {
 	var layerInformation = "";
 	for (var i=0; i<mapLayers.length; i++) {
 		if (document.getElementById('selectBox' + mapLayers[i].name).checked && mapLayers[i].name != 'userInfo') {
-			if (mapLayers[i].type === 'wms') {
+			if (mapLayers[i].type.substring(0, 3) === 'wms') {
 				mapLayers[i].imageBbox = '';
 				mapLayers[i].icon = '';
 			}
@@ -120,8 +115,7 @@ function saveMapToEndpoint() {
 		}
 	}
 	
-	//TODO: Remove in case we want to create maps only with userInfo layer
-	if (counter === 0) {
+	if (counter == 0) {
 		document.getElementById('alertMsgMoreLayers').style.display = 'block';
 	    setTimeout(function() {$('#alertMsgMoreLayers').fadeOut('slow');}, fadeTime);
 	    return -1;
@@ -141,17 +135,13 @@ function saveMapToEndpoint() {
 	//Map extent
 	var mapBbox = zoomToAll(1);
 	var geosparql = 'none';
-	//var strdf = mapExtentToWKT(mapBbox);
+	
 	if (mapBbox != null) {
 		geosparql = '<http://www.opengis.net/def/crs/EPSG/0/4326> ' + mapExtentToWKTLiteral(mapBbox);
 	}
-	//console.log(geosparql);
 	
 	//User Info layer
 	var userAddedInformation = '';
-	if (document.getElementById('selectBoxuserInfo').checked) {
-		userAddedInformation = getKMLFromFeatures(userFeatures);
-	}
 	
 	//Save the map in the given endpoint
 	var mapInformation = layerInformation + '@@@' + chartInformation + '###' + geosparql + '!!!' + userAddedInformation;
@@ -229,7 +219,8 @@ function layerToJSON(i) {
         "strokeColor" : mapLayers[i].strokeColor.toString().concat("$"),
         "iconURI" : mapLayers[i].icon.toString().concat("$"),
         "iconSize" : mapLayers[i].iconSize.toString().concat("$"),
-        "imageBox" : mapLayers[i].imageBbox.toString().concat("$")
+        "imageBox" : mapLayers[i].imageBbox.toString().concat("$"),
+        "type" : mapLayers[i].type.toString().concat("$")
         });
 }
 

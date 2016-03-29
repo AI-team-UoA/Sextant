@@ -30,26 +30,27 @@
     </head>
 
     <body onload="loadMenu()">
-        <div id="menuBar"></div>   
+        <div id="menuBar"></div> 
     
         <div id="breadcrumbsBar">
             <ol class="breadcrumb">
-                <li>Layers</a></li>
-                <li>Create new Layer</a></li>
-                <li class="active"><a href="./GML.html">GML</a></li>
+                <li>Layers</li>
+                <li>Layer Manipulation</li>
+                <li class="active"><a href="./statsChart.html">Create Feature Chart</a></li>
             </ol>
         </div> 
 
         <div class="container" id="helpInfo">
-            <h3 id="helpTitle">Create a layer from a GML file</h3>
-            <p>We can create a new layer from a GML file using the <img src="./images/createLayer/plus.png" width="20px"> button in Sextant's main menu bar and then select to <b>Load GML layer</b> as shown in the figure below. </p>
-            <div>
-                <img src="./images/createLayer/menuGML.png" width="20%" style="margin-left:40%; border-style: groove; border-width:2px">
+            <h3 id="helpTitle">Produce charts using layers' features</h3>
+            <p>We can create charts using the values of a layer's feature, using the Feature charts panel shown in the figure below</p>
+        	<div>
+                <img src="./images/layerManipulation/statsPanel.png" width="80%" style="margin-left:10%; border-style: groove; border-width:2px">
             </div><br>
-            <p>We then have to fill in the following form to create our layer. The first field is the name of the layer. Layer names are unique in Sextant, so each layer must have a different name. In the <b>URI</b> field we can provide a URI of a GML file in case it is a web resource, or we can click on the <b>Browse</b> button to select a local GML file from our file system.</p>
+            <p>When we load a vector layer in Sextant, the <b>Layer</b> selection list is updated with the name of the layer. When we choose one of the available layers from the <b>Layer</b> drop-down list, the <b>Attribute</b> list is enabled and we can choose one of the numeric attributes of the selected layer. When the attribute is selected, a chart is produced as shown in the figure below</p>
             <div>
-                <img src="./images/createLayer/GML.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
-            </div>
+                <img src="./images/layerManipulation/statsChartExample.png" width="80%" style="margin-left:10%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>The produced charts are responsive and their features are connected to the features on the map, so when we click on a point in the chart, we view the selected feature on the map. We can also download the chart as an image to the download folder of the browser, using the <img src="./images/layerManipulation/downloadStatsChart.png" width="20px"> button.</p>
         </div>    
         
         
