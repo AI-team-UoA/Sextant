@@ -63,8 +63,7 @@ var colorSpinDescribe = '#7E7E7E';
 /**
  * The two base layers for the map
  */
-var bingMapsKey = 'AviLmGQOP91G3k-bQTgx6ig4JXKXWTKRyuWJr0UALdtJ_PzBtOZo_Bv9_xWRyPYZ';
-//bingMapsKey = null;
+var bingMapsKey = null;
 var bingMap = new ol.layer.Tile({
     preload: Infinity,
     source: new ol.source.BingMaps({
@@ -151,6 +150,31 @@ var container, content, closer, overlay;
  * Map center on load
  */
 var center = ol.proj.transform([23.631, 38.091], 'EPSG:4326', 'EPSG:3857');
+
+function getBingKey() {
+	$.ajax({
+        type: 'GET',
+        url: rootURL + '/bingKey',
+        headers: {
+        	//'Accept-Charset' : 'utf-8',
+        	'Content-Type'   : 'text/plain; charset=utf-8',
+        },
+        timeout: ajaxTimeout,
+        success: initMap,
+        error: printError
+    });
+}
+
+function initMap(results, status, jqXHR) {
+	if (results == 'none') {
+		bingMapsKey = null;
+	}
+	else {
+		bingMapsKey = results;
+	}
+	initialize();
+	loadMapFromURL();
+}
 
 /**
  * Function for initializing the OpenLayers map

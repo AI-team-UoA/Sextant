@@ -128,8 +128,9 @@ public class RestServiceImpl {
 	private static final String TMP_FOLDER				= ServerConfiguration.getString("TMP_FOLDER");
 	private static final String GDAL_PATH				= ServerConfiguration.getString("GDAL");
 	private static final String PROXY_STATUS			= ServerConfiguration.getString("PROXY_STATUS");
-	private static final String PROXY_NAME			= ServerConfiguration.getString("PROXY_NAME");
-	private static final String PROXY_PORT			= ServerConfiguration.getString("PROXY_PORT");
+	private static final String PROXY_NAME				= ServerConfiguration.getString("PROXY_NAME");
+	private static final String PROXY_PORT				= ServerConfiguration.getString("PROXY_PORT");
+	private static final String BING_MAPS_KEY			= ServerConfiguration.getString("BING_MAPS_KEY");
 		
 	public static final String ENDPOINT_FAILURE_MSG	= "Error during communication with the SPARQL endpoint at ";
 		
@@ -729,6 +730,13 @@ public class RestServiceImpl {
     public String testFunc2(@QueryParam("title") String title, @QueryParam("extent") String extent) {	
 		
 		return extent + "\n" +title;		
+	}
+	
+	@GET
+	@Path("/bingKey")
+	@Produces({MediaType.TEXT_PLAIN})
+    public String getBingMapsHey() {		
+		return BING_MAPS_KEY;		
 	}
 	
 	@POST 
