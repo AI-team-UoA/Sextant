@@ -386,7 +386,7 @@ function moveTimeLeftWMS() {
 	if (document.getElementById('metricWMS').value != "") {
 		timeTravelValueWMS = Number(document.getElementById('metricWMS').value);
 	}
-	mSecs= mSecs - (timeTravelValueWMS*24*60*60*1000);
+	mSecs= mSecs - (timeTravelValueWMS*60*1000);
 	date.setTime(mSecs);
 	
 	//Update UI and source
@@ -413,7 +413,7 @@ function moveTimeRightWMS() {
 	if (document.getElementById('metricWMS').value != "") {
 		timeTravelValueWMS = Number(document.getElementById('metricWMS').value);
 	}
-	mSecs= mSecs + (timeTravelValueWMS*24*60*60*1000);
+	mSecs= mSecs + (timeTravelValueWMS*60*1000);
 	date.setTime(mSecs);
 	
 	//Update UI and source
@@ -427,12 +427,13 @@ function moveTimeRightWMS() {
 }
 
 var playWMS = 0;
-var startClockWMS;
+var startClockWMS = null;
+var frameRate = 0.33;
 function playTimeWMS() {
 	if (playWMS == 0) {
 		playWMS = 1;
 		document.getElementById('playButtonWMS').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span>';
-		startClockWMS = setInterval(function () {moveTimeRightWMS();}, 3000);
+		startClockWMS = setInterval(function () {moveTimeRightWMS();}, 1000 / frameRate);
 	}
 	else {
 		clearInterval(startClockWMS);
