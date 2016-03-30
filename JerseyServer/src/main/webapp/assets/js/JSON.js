@@ -47,6 +47,8 @@ function addJSONLayer(label, filename, styling, isTemp, type) {
 		if (type == 'geojson') {format = new ol.format.GeoJSON();}
 		if (type == 'topojson') {format = new ol.format.TopoJSON();}
 		
+		checkLayerURL(label, filename);
+		
 		//Image Vector layer to use WebGL rendering
 		var layer = new ol.layer.Image({
 			title: label,

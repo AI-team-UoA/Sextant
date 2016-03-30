@@ -539,7 +539,7 @@ function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, pat
             }  
             else {
             	//The layer is produced by query, or is local and is loaded from existing map, so it's file exists
-        		addGeoTiffLayer(name, url, bbox, imageSize);
+            	addGeoTiffLayer(name, url, bbox, imageSize);
             }
     		
     		//Reset form data
@@ -629,4 +629,40 @@ function clearPopup() {
     closer.blur();
     return false;
 }
+
+function checkLayerURL(name, url) {
+	$.ajax({
+        type: 'GET',
+        url: url,       
+        timeout: ajaxTimeout,
+        success: checkURLSuccess,
+        error: checkURLError,
+        layerName: name
+    });
+}
+
+function checkURLSuccess(results, status, jqXHR) {
+	//console.log('Layer source OK.');	
+}
+
+function checkURLError(jqXHR, textStatus, errorThrown) {
+	var layerName = this.layerName;
+	//console.log('Layer source ERROR: '+layerName);
+	document.getElementById('alertURLinvalid').style.display = 'block';
+    setTimeout(function() {$('#alertURLinvalid').fadeOut('slow');}, fadeTime);
+    
+    var index = -1;
+    var table = document.getElementById('layerTable');
+    var tableRef = document.getElementById('layerTable').getElementsByTagName('tbody')[0];
+    for (var i=0; i<table.rows.length; i++) {
+        if (table.rows[i].cells[1].innerHTML == layerName) {
+            index = i;
+            break;
+        }
+    }
+    tableRef.deleteRow(index);
+    mapLayers.splice(index, 1);
+}
+
+
 

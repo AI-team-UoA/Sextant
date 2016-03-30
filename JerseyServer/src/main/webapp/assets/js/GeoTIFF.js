@@ -67,7 +67,9 @@ function addGeoTiffLayerFromModal(){
  * Adds the given GeoTIFF file as a new layer on the map.
  */
 function addGeoTiffLayer(label, filename, bbox, imageSize) {
-	if (filename && label) {  		
+	if (filename && label) {  	
+		checkLayerURL(label, filename);
+		
       	var layer = new ol.layer.Image({
       		title: label,
             source: new ol.source.ImageStatic({

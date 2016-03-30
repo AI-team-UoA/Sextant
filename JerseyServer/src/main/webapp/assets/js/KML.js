@@ -42,6 +42,8 @@ function addKMLLayerFromModal(){
  */
 function addKmlLayer(label, filename, styling, isTemp) {
 	if (filename && label) {
+		checkLayerURL(label, filename);
+		
 		//Image Vector layer to use WebGL rendering
 		var layer = new ol.layer.Image({
 			title: label,
