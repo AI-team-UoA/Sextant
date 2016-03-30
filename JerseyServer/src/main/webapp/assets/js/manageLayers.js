@@ -39,9 +39,9 @@ function addTableRow(name, typeF) {
 	    
     };
     newCell.appendChild(element);
-    if (hasURI == 'null'){
+    /*if (hasURI == 'null'){
     	element.disabled = true;
-    }
+    }*/
     
     //Add Layer Name
     newCell  = newRow.insertCell(1);
@@ -92,9 +92,9 @@ function addTableRow(name, typeF) {
         });     
     };
 	groupButtons.appendChild(element);
-    if (hasURI == 'null'){
+    /*if (hasURI == 'null'){
     	element.disabled = true;
-    }
+    }*/
     
     //Layer info button
     element = document.createElement("button");
@@ -136,35 +136,64 @@ function addTableRow(name, typeF) {
     	}
     };
     groupButtons.appendChild(element);
-    if (typeF === "user") {
+    /*if (typeF === "user") {
+    	element.disabled = true;
+    }*/
+    
+    //Edit query - Temporal WMS
+    if (typeF.substring(0,3) == "wms" && isTemp) {
+    	//Temporal WMS interface
+    	element = document.createElement("button");
+	    element.type = "button";
+	    element.title = "Update WMS TIME";
+	    element.innerHTML = '<i class="fa fa-pencil-square-o fa-lg"></i>';
+	    element.setAttribute("class", "btn btn-xs btn-default");  
+	    element.onclick = function () {
+	    	//Add functionality
+	    	var timeStampWMS = mapLayers[temp].type.split(',')[3];
+	    	document.getElementById('WMSid').innerHTML = '<b>WMS layer: </b>'+name;
+	    	document.getElementById('currentTimeWMS').innerHTML = '<b>TIME: </b>'+timeStampWMS;
+	    	document.getElementById('timePanelWMS').style.display = 'block';
+	    	
+	    	if (animateTimeline == 1) {
+		    	animateTimePanel();
+	    	}
+	    	if (animateStats == 1) {
+		    	animateStatsPanel();
+	    	}
+	    	
+	    	tempName = name;
+	    };
+    }
+	else {
+		//Update query interface
+		element = document.createElement("button");
+	    element.type = "button";
+	    element.title = "View/Edit query";
+	    element.innerHTML = '<i class="fa fa-pencil-square-o fa-lg"></i>';
+	    element.setAttribute("class", "btn btn-xs btn-default");  
+	    element.setAttribute("data-toggle", "modal");
+	    element.setAttribute("data-target", "#modalUpdateQuery");
+	    element.onclick = function () {
+	    	//Add functionality
+	    	document.getElementById('endpointUrlQueryUpdate').value = hasEndpoint;
+	    	document.getElementById('textQueryUpdate').value = hasQueryText;
+	    	document.getElementById('layerNameQueryUpdate').value = name;
+	    	if (isTemp) {
+	    		document.getElementById('isTemporalQueryUpdate').checked = true;
+	    	}
+	    	else {
+	    		document.getElementById('isTemporalQueryUpdate').checked = false;
+	    	}
+	    	tempName = name;
+	    };
+	}   
+    groupButtons.appendChild(element);
+    if (hasQueryText == null || hasQueryText == '') {
     	element.disabled = true;
     }
-    
-    //Edit query
-    element = document.createElement("button");
-    element.type = "button";
-    element.title = "View/Edit query";
-    element.innerHTML = '<i class="fa fa-pencil-square-o fa-lg"></i>';
-    element.setAttribute("class", "btn btn-xs btn-default");  
-    element.setAttribute("data-toggle", "modal");
-    element.setAttribute("data-target", "#modalUpdateQuery");
-    element.onclick = function () {
-        //Add functionality
-    	document.getElementById('endpointUrlQueryUpdate').value = hasEndpoint;
-    	//document.getElementById('loadEndpointPortUpdate').value = 80;
-    	document.getElementById('textQueryUpdate').value = hasQueryText;
-    	document.getElementById('layerNameQueryUpdate').value = name;
-    	if (isTemp) {
-    		document.getElementById('isTemporalQueryUpdate').checked = true;
-    	}
-    	else {
-    		document.getElementById('isTemporalQueryUpdate').checked = false;
-    	}
-    	tempName = name;
-    };
-    groupButtons.appendChild(element);
-    if (hasQueryText === null || hasQueryText === '') {
-    	element.disabled = true;
+    if (typeF.substring(0,3) == "wms" && isTemp) {
+    	element.disabled = false;
     }
     
     //Global Styles
@@ -186,7 +215,7 @@ function addTableRow(name, typeF) {
         showStylesForm(position);
     };
     groupButtons.appendChild(element);
-    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) || hasURI == 'null' ) {
+    if ( !((typeF == "kml") || (typeF == "gml") || (typeF == "geojson") || (typeF == "topojson")) ) {
     	element.disabled = true;
     }
     
@@ -210,7 +239,7 @@ function addTableRow(name, typeF) {
         createModalBody(mapLayers[position].features);
     };
     groupButtons.appendChild(element);
-    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) || hasURI == 'null' ) {
+    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) ) {
     	element.disabled = true;
     }
     
@@ -224,7 +253,7 @@ function addTableRow(name, typeF) {
         setFilters(name);       
     };   
     groupButtons.appendChild(element);
-    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) || hasURI == 'null' ) {
+    if ( !((typeF === "kml") || (typeF === "gml") || (typeF === "geojson") || (typeF === "topojson")) ) {
     	element.disabled = true;
     }
 
@@ -246,9 +275,9 @@ function addTableRow(name, typeF) {
         featureOverlay.setZIndex(5);
     };
     groupButtons.appendChild(element);
-    if (hasURI == 'null') {
+    /*if (hasURI == 'null') {
     	element.disabled = true;
-    }
+    }*/
     
     //Download file (HTML5: Works in Firefox, Chrome, Android, Crome for Android)
     element = document.createElement("button");
@@ -280,7 +309,7 @@ function addTableRow(name, typeF) {
         file.click();    	
     };
     groupButtons.appendChild(element);
-    if (typeF == "wms" || typeF === "user") {
+    if (typeF.substring(0,3) == "wms") {
     	element.disabled = true;
     }
     
@@ -296,9 +325,6 @@ function addTableRow(name, typeF) {
         tempName = name;
     };
     groupButtons.appendChild(element);
-    if (typeF === "user") {
-    	element.disabled = true;
-    }
     
     newCell.appendChild(groupButtons);
 }

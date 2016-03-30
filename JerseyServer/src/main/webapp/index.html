@@ -10,14 +10,14 @@
       
     <!-- Imported libs, WARNING!!! Do NOT change the order -->  
       
-    <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+    <!-- Bootstrap core CSS/JS/jQuery/Moment -->   
+    <script type="text/javascript" src="./assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="./assets/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./assets/js/moment-with-locales.js"></script>
+    <script type="text/javascript" src="./assets/js/bootstrap-datetimepicker.js"></script>   
     <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="./assets/css/bootstrap-theme.min.css" rel="stylesheet">
     <link href="./assets/css/bootstrap-datetimepicker.css" rel="stylesheet">
-    <script type="text/javascript" src="./assets/js/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="./assets/js/moment-with-locales.js"></script>
-    <script type="text/javascript" src="./assets/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="./assets/js/bootstrap-datetimepicker.js"></script>   
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="./assets/font-awesome-4.3.0/css/font-awesome.min.css">
@@ -392,6 +392,21 @@
 			       	      <option>default style</option>
 			       	  </select>			       	  
 			       	  
+			       	  <div class="row" style="margin-top: 30px">
+					  	<div class="col-md-1 col-sm-1">
+					  		<input type= "checkbox" id="isTemporalWMS" onclick='handleWMSisTemp(this);'/>
+					  	</div>
+					  	<div class="col-md-11 col-sm-11">
+					  		<p>Is a temporal layer</p>
+					  	</div>
+					  </div>
+					  <div class='input-group date wmsDate' id="wmsReferenceDate" style="z-index: -100">
+					    	<input type='text' class="form-control" placeholder="Start Date" id="wmsRefDate" readonly/>
+					        <span class="input-group-addon">
+					           	<span class="fa fa-calendar"></span>
+					        </span>
+					  </div>
+					  
 				      <div class="leftButton">
 				          <button type="submit" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="addWMSLayerFromModal();">Ok</button>    	
 				      </div>
@@ -2047,6 +2062,33 @@
 	  	  	  <canvas id="myNewStatsCanvas"></canvas>
 	  	  </div>
 	  </div> 
+	  
+	  <div class="container" id="timePanelWMS" style="display: none">
+      	  <p id="currentTimeWMS" style="margin-top: 10px"></p>
+      	  <p id="WMSid" style="margin-top: -10px"></p>
+      	  
+      	  <div id="closeWMStimePanel" onClick="hideWMStimePanel()"><i class="fa fa-times"></i></div>    	  	  
+      	  
+	  	  <div id="goLeftWMS">
+      	      <button class="btn btn-default btn-sm"  type="button" onClick="moveTimeLeftWMS()">
+      	      	  <i class="fa fa-backward"></i>
+      	      </button>
+      	  </div> 
+      	  <div id="goRightWMS">
+      	      <button class="btn btn-default btn-sm"  type="button" onClick="moveTimeRightWMS()">
+      	      	  <i class="fa fa-forward"></i>
+      	      </button>
+      	  </div>
+      	  <div id="playTimelineWMS">
+      	      <button class="btn btn-default btn-sm"  type="button" onClick="playTimeWMS()" id="playButtonWMS">
+      	      	  <i class="fa fa-play"></i>
+      	      </button>
+      	  </div>
+    	  
+      	  <div id="daysWMS">
+      	  	  <input type="text" class="form-control" placeholder="1" id="metricWMS" style="text-align: center;">
+      	  </div>
+	  </div>
       
 <!-- ********************************************************************************************************************************** -->          
           

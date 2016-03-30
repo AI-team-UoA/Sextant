@@ -23,13 +23,19 @@ function addWMSLayerFromModal(){
     if (styleId == 'default style') {styleId = '';}
     var serverType = document.getElementById('ServerType').options[document.getElementById('ServerType').selectedIndex].value;
     var serverVersion = document.getElementById('WMSversion').options[document.getElementById('WMSversion').selectedIndex].value;
-    var isTemp = false;
+    var isTemp = document.getElementById('isTemporalWMS').checked;;
     var mapId = 0;
     var endpoint = "";
     var type = "wms";  
     var text = "";
     
-    addLayer(url, name, isTemp, type, text, endpoint, mapId, null, [layersWMS, serverType, serverVersion], styleId, null, null);
+    var referenceDate = document.getElementById('wmsRefDate').value;
+    if (referenceDate != "") {
+    	referenceDate = new Date(referenceDate);
+    	referenceDate = referenceDate.toISOString();
+    }
+    
+    addLayer(url, name, isTemp, type, text, endpoint, mapId, null, [layersWMS, serverType, serverVersion, referenceDate], styleId, null, null);
 	
 	document.getElementById('hiddenLoadWMS').reset();
 	document.getElementById('WMSLayerList').innerHTML = '';
@@ -39,7 +45,7 @@ function addWMSLayerFromModal(){
 /**
  * Add a WMS layer on the map
  */
-function addWMSLayer(name, url, layersWMS, type, styleId, bbox) {
+function addWMSLayer(name, url, layersWMS, type, styleId, bbox, isTemp, timeStamp) {
 	if (name && url && layersWMS) {		
 		var colorPanel;
 		for (var i=0; i<mapLayers.length; i++) {
@@ -49,17 +55,26 @@ function addWMSLayer(name, url, layersWMS, type, styleId, bbox) {
 			}
 		}
 		
-		//console.log(bbox);
-		
+		var parameters;
+		if (isTemp) {
+			parameters = {'LAYERS': layersWMS,
+     	     		      'TILED': true,
+     	     		      'VERSION': type[1],
+     	     		      'STYLES': styleId,
+     	     		      'TIME': timeStamp};
+		}
+		else {
+			parameters = {'LAYERS': layersWMS,
+           	     		  'TILED': true,
+           	     		  'VERSION': type[1],
+           	     		  'STYLES': styleId};
+		}
 		var layer = new ol.layer.Tile({
 			  title: name,
 	          extent: [-20026376.39, -20048966.10, 20026376.39, 20048966.10],
 	          source: new ol.source.TileWMS({
 	            url: url,
-	            params: {'LAYERS': layersWMS,
-	            	     'TILED': true,
-	            	     'VERSION': type[1],
-	            	     'STYLES': styleId},
+	            params: parameters,
 	            serverType: type[0],
 	            crossOrigin: 'anonymous',
 	            projection: 'EPSG:3857'
@@ -149,7 +164,7 @@ function updateWMSname() {
 	}
 }
 /////////////////////
-function cloneWMSList(url, name, id, styleId, type) {	
+function cloneWMSList(url, name, id, styleId, type, isTemp) {	
 	$.ajax({
         type: 'GET',
         url: url + '?request=GetCapabilities&version='+type[1]+'&service=WMS',              
@@ -161,7 +176,9 @@ function cloneWMSList(url, name, id, styleId, type) {
         styleId: styleId,
         serverType: type[0],
         serverVersion: type[1],
-        serverURL: url
+        serverURL: url,
+        isTemporal: isTemp,
+        timeStampWMS: type[2]
     });	
 }
 
@@ -243,10 +260,10 @@ function parseClonedWMSResults(results, status, jqXHR) {
 		}				
 	});
 	
-	parseWMSMetadata(this.layerName, this.layerId, this.styleId, this.serverType, this.serverVersion, this.serverURL);	
+	parseWMSMetadata(this.layerName, this.layerId, this.styleId, this.serverType, this.serverVersion, this.serverURL, this.isTemporal, this.timeStampWMS);	
 }
 
-function parseWMSMetadata(layerName, WMSid, styleId, serverType, serverVersion, serverURL) {
+function parseWMSMetadata(layerName, WMSid, styleId, serverType, serverVersion, serverURL, isTemp, timeStamp) {
 	var pos= -1;
 	for (var i=0; i<tempWMS.length; i++) {
 		if (tempWMS[i].id == WMSid) {
@@ -273,7 +290,7 @@ function parseWMSMetadata(layerName, WMSid, styleId, serverType, serverVersion, 
 					addWMSlegend(mapLayers[i].name, mapLayers[i].icon);
 				}
 									
-				addWMSLayer(mapLayers[i].name, serverURL, WMSid, [serverType, serverVersion], styleId, mapLayers[i].imageBbox);
+				addWMSLayer(mapLayers[i].name, serverURL, WMSid, [serverType, serverVersion], styleId, mapLayers[i].imageBbox, isTemp, timeStamp);
 				break;
 			}
 		}
@@ -298,6 +315,7 @@ function parseWMSMetadata(layerName, WMSid, styleId, serverType, serverVersion, 
 	
 	document.getElementById('WMSLayerList').disabled = true;
 	document.getElementById('WMSstyle').disabled = true;
+	document.getElementById('wmsReferenceDate').style.zIndex = -100;
 }
 
 function addWMSlegend(layerName, legendURI) {
@@ -342,3 +360,90 @@ function parseWMSPopupResults(results, status, jqXHR) {
 		clearPopup();
 	}
 }
+
+function handleWMSisTemp(checkbox) {
+	if (checkbox.checked) {
+		document.getElementById('wmsReferenceDate').style.zIndex = 5000;
+	}
+	else {
+		document.getElementById('wmsReferenceDate').style.zIndex = -100;
+	}
+}
+
+
+var timeTravelValueWMS;
+function moveTimeLeftWMS() {
+	timeTravelValueWMS = 1;
+	
+	var nameString = document.getElementById('WMSid').innerHTML;
+	nameString = nameString.substring(nameString.indexOf('</b>')+4, nameString.length);
+	
+	var dateString = document.getElementById('currentTimeWMS').innerHTML;
+	dateString = dateString.substring(dateString.indexOf('</b>')+4, dateString.length);
+	var date = new Date(dateString);
+	
+	var mSecs= Date.parse(date.toString());
+	if (document.getElementById('metricWMS').value != "") {
+		timeTravelValueWMS = Number(document.getElementById('metricWMS').value);
+	}
+	mSecs= mSecs - (timeTravelValueWMS*24*60*60*1000);
+	date.setTime(mSecs);
+	
+	//Update UI and source
+	document.getElementById('currentTimeWMS').innerHTML = '<b>TIME: </b>'+date.toISOString();
+	
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == nameString) {
+    		layer.getSource().updateParams({'TIME': date.toISOString()});
+    	}
+	});
+}
+
+function moveTimeRightWMS() {
+	timeTravelValueWMS = 1;
+	
+	var nameString = document.getElementById('WMSid').innerHTML;
+	nameString = nameString.substring(nameString.indexOf('</b>')+4, nameString.length);
+	
+	var dateString = document.getElementById('currentTimeWMS').innerHTML;
+	dateString = dateString.substring(dateString.indexOf('</b>')+4, dateString.length);
+	var date = new Date(dateString);
+	
+	var mSecs= Date.parse(date.toString());
+	if (document.getElementById('metricWMS').value != "") {
+		timeTravelValueWMS = Number(document.getElementById('metricWMS').value);
+	}
+	mSecs= mSecs + (timeTravelValueWMS*24*60*60*1000);
+	date.setTime(mSecs);
+	
+	//Update UI and source
+	document.getElementById('currentTimeWMS').innerHTML = '<b>TIME: </b>'+date.toISOString();
+	
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == nameString) {
+    		layer.getSource().updateParams({'TIME': date.toISOString()});
+    	}
+	});
+}
+
+var playWMS = 0;
+var startClockWMS;
+function playTimeWMS() {
+	if (playWMS == 0) {
+		playWMS = 1;
+		document.getElementById('playButtonWMS').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span>';
+		startClockWMS = setInterval(function () {moveTimeRightWMS();}, 3000);
+	}
+	else {
+		clearInterval(startClockWMS);
+		playWMS = 0;
+		document.getElementById('playButtonWMS').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span>';
+	}
+}
+
+function hideWMStimePanel() {
+	document.getElementById('timePanelWMS').style.display = 'none';
+}
+
+
+

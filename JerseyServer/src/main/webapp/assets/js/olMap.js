@@ -380,6 +380,11 @@ function initialize() {
         format: 'YYYY-MM-DD',
         ignoreReadonly: true
     });
+    
+    $('.wmsDate').datetimepicker({
+        format: 'YYYY-MM-DDTHH:mm:ssZ',
+        ignoreReadonly: true
+    });
  
     disableFeatures(disableAll, disableSaveMap);
     
@@ -543,10 +548,10 @@ function addLayer(url, name, isTemp, type, text, endpoint, mapId, localFile, pat
     	
     	//WMS
     	if (type === 'wms'){
-    		var wmsTypeInfo = [type, path[1], path[2]];
+    		var wmsTypeInfo = [type, path[1], path[2], path[3]];
         	var tl = new Layer(name, url+'#'+path[0], isTemp, wmsTypeInfo.toString(), text, endpoint, style, '', '', '', mapId, '', '');
         	mapLayers.push(tl);       	
-        	cloneWMSList(url, name, path[0], style, [path[1], path[2]]);      	
+        	cloneWMSList(url, name, path[0], style, [path[1], path[2], path[3]], isTemp);      	
     	}
     	
     	//Add a row for this layer in the Manage Layers view

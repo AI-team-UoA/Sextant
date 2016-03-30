@@ -270,7 +270,7 @@ function parseResults(results, status, jqXHR) {
 		    	}
 		    	else {
 		    		var parseWMS_URI = uri.split('#');			    		
-	    			addLayer(parseWMS_URI[0], name, isTemp, "wms", query, endpoint, globalId, null, [parseWMS_URI[1], parseType[1], parseType[2]], fillColor, null, null);
+	    			addLayer(parseWMS_URI[0], name, isTemp, "wms", query, endpoint, globalId, null, [parseWMS_URI[1], parseType[1], parseType[2], parseType[3]], fillColor, null, null);
 		    	}
 		    	
 		    	for (var i=0; i<mapLayers.length; i++) {

@@ -223,12 +223,13 @@ function eventInsideBand(begin, end, evtStart, evtEnd) {
 /**
  * Move timeline with buttons
  */
+var timeTravelValue;
 function moveTimeLeft() {
 		timeTravelValue = 10;
 		var date = tl.getBand(0).getCenterVisibleDate();
 		var mSecs= Date.parse(date.toString());
 		if (document.getElementById('metric').value != "") {
-			timeTravelValue = document.getElementById('metric').value;
+			timeTravelValue = Number(document.getElementById('metric').value);
 		}
 		mSecs= mSecs - (timeTravelValue*24*60*60*1000);
 		date.setTime(mSecs);
@@ -243,7 +244,7 @@ function moveTimeRight() {
 		var date = tl.getBand(0).getCenterVisibleDate();
 		var mSecs= Date.parse(date.toString());
 		if (document.getElementById('metric').value != "") {
-			timeTravelValue = document.getElementById('metric').value;
+			timeTravelValue = Number(document.getElementById('metric').value);
 		}
 		mSecs= mSecs + (timeTravelValue*24*60*60*1000);
 		date.setTime(mSecs);
@@ -264,16 +265,17 @@ function moveTimelineToDate(givenDate) {
 }
 
 var play = 0;
+var startClock;
 function playTime() {
 	if (play == 0) {
 		play = 1;
-		document.getElementById('playButton').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span>';
+		document.getElementById('playButton').innerHTML = '<i class="fa fa-pause"></i>';
 		startClock = setInterval(function () {moveTimeRight();}, 1000);
 	}
 	else {
 		clearInterval(startClock);
 		play = 0;
-		document.getElementById('playButton').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span>';
+		document.getElementById('playButton').innerHTML = '<i class="fa fa-play"></i>';
 	}
 }
 

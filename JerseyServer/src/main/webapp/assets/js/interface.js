@@ -17,7 +17,7 @@ function zoomToAll(mode) {
 				}
 				else {
 					//WMS
-					
+					extent = getWMSExtent(layer.get('title'));
 		    		first = false;
 				}
 	    		
@@ -31,7 +31,7 @@ function zoomToAll(mode) {
 				}
 				else {
 					//WMS
-					
+					ol.extent.extend(extent, getWMSExtent(layer.get('title')));
 				}
 	    		
 	    	}   
@@ -51,7 +51,12 @@ function zoomToAll(mode) {
 function getLayerType(name) {
 	for (var i=0; i<mapLayers.length; i++) {
         if (mapLayers[i].name == name) {
-            return mapLayers[i].type;
+        	if (mapLayers[i].type.substring(0,3) != 'wms') {
+        		return mapLayers[i].type;
+        	}
+        	else {
+        		return 'wms';
+        	}
         }
     }
 }
@@ -62,6 +67,14 @@ function getImageExtent(name) {
         	var parse = mapLayers[i].imageBbox.split(',');
 			var extent = [Number(parse[2]), Number(parse[3]), Number(parse[4]), Number(parse[5])];
             return extent;
+        }
+    }
+}
+
+function getWMSExtent(name) {
+	for (var i=0; i<mapLayers.length; i++) {
+        if (mapLayers[i].name == name) {
+            return mapLayers[i].imageBbox;
         }
     }
 }
