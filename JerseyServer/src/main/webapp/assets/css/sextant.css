@@ -253,8 +253,8 @@ body {
 
 #colorPanel {
 	position: absolute;
-	width: 35%;
-	max-height: 70%;
+	width: 24%;
+	max-height: 50%;
 	top: 100px;
 	left: 70px;
 	z-index: 1;	
@@ -275,9 +275,9 @@ body {
 .alert {
 	position: absolute;
 	top: 85%;
-	width: 40%;
-	left: 15%;
-	z-index: 50;
+	width: 34%;
+	left: 13%;
+	z-index: 5000;
 }
 
 #loadingWheel {
@@ -750,7 +750,7 @@ img.evtIcon {
 
 #timePanelWMS {
 	position: absolute;
-	width: 300px;
+	width: 266px;
 	height: 150px;
 	left: 20px;
 	bottom: 40px;
@@ -769,18 +769,30 @@ img.evtIcon {
 	height: 40px;
 }
 
+#goLeftWMS {
+	left: 56px;
+}
+
 #playTimelineWMS {
-	left: 75px;
+	left: 114px;
 }
 
 #goRightWMS {
-	left: 130px;
+	right: 60px;
 }
 
 #daysWMS {
 	position:absolute;
 	top:90px;
-	width: 150px;
+	width: 72px;
+	left: 56px;
+}
+
+#framesWMS {
+	position:absolute;
+	top:90px;
+	width: 72px;
+	right: 60px;
 }
 
 #closeWMStimePanel {

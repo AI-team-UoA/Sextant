@@ -2031,7 +2031,7 @@
       	  </div>
       	  
       	  <div id="days">
-      	  	  <input type="text" class="form-control" placeholder="10 (days)" id="metric" style="text-align: center;">
+      	  	  <input type="text" class="form-control" title="Time Step" placeholder="10 (days)" id="metric" style="text-align: center;">
       	  </div>
       	  
 	  </div>   
@@ -2067,8 +2067,8 @@
 	  </div> 
 	  
 	  <div class="container" id="timePanelWMS" style="display: none">
-      	  <p id="currentTimeWMS" style="margin-top: 10px"></p>
-      	  <p id="WMSid" style="margin-top: -10px"></p>
+	      <p id="WMSid" style="margin-top: 10px"></p>
+      	  <p id="currentTimeWMS" style="margin-top: -10px"></p>
       	  
       	  <div id="closeWMStimePanel" onClick="hideWMStimePanel()"><i class="fa fa-times"></i></div>    	  	  
       	  
@@ -2089,7 +2089,10 @@
       	  </div>
     	  
       	  <div id="daysWMS">
-      	  	  <input type="text" class="form-control" placeholder="1 (min)" id="metricWMS" style="text-align: center;">
+      	  	  <input type="text" class="form-control" title="Time Step" placeholder="1 (min)" id="metricWMS" style="text-align: center;">
+      	  </div>
+      	  <div id="framesWMS">
+      	  	  <input type="text" class="form-control" title="Refresh rate" placeholder="5 (sec)" id="refreshRate" style="text-align: center;">
       	  </div>
 	  </div>
       

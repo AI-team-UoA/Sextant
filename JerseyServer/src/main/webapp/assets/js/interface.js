@@ -283,6 +283,7 @@ function animateTimePanel() {
 		document.getElementById('animateTimelineButton').title = 'Hide Timeline';
 		$("#tmContainer").animate({right: 0}, 500);		
 		animateTimeline = 1;
+		hideWMStimePanel();
 	}
 	else {		
 		document.getElementById('animateTimelineButton').innerHTML = '<i class="fa fa-chevron-left fa-lg"></i>';
@@ -304,6 +305,7 @@ function animateStatsPanel() {
 		document.getElementById('animateStatsPanelButton').title = 'Hide Stats';
 		$("#statsContainer").animate({right: 0}, 500);		
 		animateStats = 1;
+		hideWMStimePanel();
 	}
 	else {		
 		document.getElementById('animateStatsPanelButton').innerHTML = '<i class="fa fa-chevron-left fa-lg"></i>';

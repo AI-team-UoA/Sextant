@@ -428,12 +428,15 @@ function moveTimeRightWMS() {
 
 var playWMS = 0;
 var startClockWMS = null;
-var frameRate = 0.33;
+var frameRate = 5;
 function playTimeWMS() {
 	if (playWMS == 0) {
 		playWMS = 1;
 		document.getElementById('playButtonWMS').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span>';
-		startClockWMS = setInterval(function () {moveTimeRightWMS();}, 1000 / frameRate);
+		if (document.getElementById('refreshRate').value != "") {
+			frameRate = Number(document.getElementById('refreshRate').value);
+		}
+		startClockWMS = setInterval(function () {moveTimeRightWMS();}, (1000*frameRate));
 	}
 	else {
 		clearInterval(startClockWMS);
