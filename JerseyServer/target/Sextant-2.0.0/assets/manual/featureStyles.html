@@ -1,0 +1,69 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div>  
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Layers</li>
+                <li>Layer Manipulation</li>
+                <li class="active"><a href="./featureStyles.html">Feature Styling</a></li>
+            </ol>
+        </div> 
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Change a layer's style according to a feature's values</h3>
+            <p>We can change a layer's style according to the values of a specific feature by clicking the <img src="./images/layerManipulation/featureS.png" width="30px"> button of the layer in the Layers panel as shown in the picture below.</p>
+            <div>
+                <img src="./images/layerManipulation/featureSbutton.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>As a result we get a pop-up where we can select the desired feature, the data type for the comparisons (numeric or string) and adjust the interval's boundaries, as shown below. To add more intervals we can click the <img src="./images/layerManipulation/colorPlus.png" width="20px"> button next to the interval's color. We can change the default color for each interval by clicking on the color button, choose a color in the color-picker that appears and click the <b>OK</b> button in the bottom right corner of the color-picker. When the styling takes place, the <b>Color Panel</b> appears in the left side of the UI. We can show the Color Panel at any point by using the <img src="./images/basicFunctionality/cog.png" width="20px"> button in Sextant's main menu bar and then select <b>Show Color Panel</b> from the basic functions.</p>
+            <div>
+                <img src="./images/layerManipulation/featureSmodal.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br><br>
+            <p>In the next two figures we showcase the feature styling on a KML file.</p>
+            <div class="row">
+                <div class="col-md-4 col-sm-4">
+                    <img src="./images/layerManipulation/faetureSmodalExample.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-8 col-sm-8">
+                    <img src="./images/layerManipulation/featureSexampleMap.png" width="100%">
+                </div>
+            </div>
+        </div>    
+        
+        
+        
+    </body>
+</html>
+
+      

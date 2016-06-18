@@ -1,0 +1,62 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div>
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Maps</li>
+                <li class="active"><a href="./loadMap.html">Load</a></li>
+            </ol>
+        </div> 
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Loading a map</h3>
+            <p>To load a map in Sextant if we know the <b>mapid</b>, apart from using the URI of the map, we can use the <img src="./images/maps/plus.png" width="20px"> button in Sextant's main menu bar and then select <b>Load from MapID</b> as shown in the figure below.</p>
+            <div>
+                    <img src="./images/maps/menuLoadMap.png" width="20%" style="margin-left:40%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>We then have to fill the following form to load the map. The first field is the <b>Map ID</b> where we provide the unique identifier for the map. The next two fields are used to point the map registry in which the map is saved. In the <b>URI</b> field we provide the URI that is used to query the registry and in the <b>Port</b> field the port number in which the registry listens to.</p>
+            <div>
+                    <img src="./images/maps/loadMapModal.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br><br>
+            <p>The user can leave the <b>Endpoint Information</b> fields empty. In this case Sextant will use the default map registry that is provided in the <b>server-configuration.properties</b> under <i>/Sextant/WEB-INF/classes/server</i> as described in <a href="./saveMap.html">Save map</a> manual page.</p>
+            <p>When we load a map all the layers are available in the <b>Layers</b> panel. The URL in our browser changes to match the URI of the map and the <b>Map information</b> panel is populated with the map metadata and can act as a legend, as shown in the figure below.</p>
+            <div>
+                    <img src="./images/maps/mapLayersLegend.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div>
+        </div>    
+                
+    </body>
+</html>
+
+      

@@ -62,6 +62,11 @@
 			<artifactId>jersey-multipart</artifactId>
 			<version>1.8</version>
 		</dependency>
+		<dependency>
+		    <groupId>com.sun.jersey</groupId>
+		    <artifactId>jersey-json</artifactId>
+		    <version>1.8</version>
+		</dependency>
 		
 		<!-- Strabon and Sesame dependencies -->
 		<dependency>
@@ -112,6 +117,19 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-epsg-wkt</artifactId>
 			<version>${geotools.version}</version>
+		</dependency>
+		
+		<!-- JSON-LD -->
+		<dependency>
+		    <groupId>com.github.jsonld-java</groupId>
+		    <artifactId>jsonld-java</artifactId>
+		    <version>0.8.3</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.6.3</version>
 		</dependency>
 	</dependencies>
 	<build>

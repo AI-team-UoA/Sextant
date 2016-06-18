@@ -1,0 +1,91 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div>  
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Extra Functionality</li>
+                <li class="active"><a href="./statistical.html">Statistical Charts</a></li>
+            </ol>
+        </div>    
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Produce charts from a SPARQL Endpoint</h3>
+            <h4>Statistical Enhancement of datasets</h4>
+            <p>The <a href="https://www.w3.org/TR/vocab-data-cube/" target="_blank">RDF Data Cube Vocabulary</a> presents an ontology for publishing multi-dimensional data, such as statistics into RDF. In most cases though datasets are already published using another ontology and publishing the data again in the RDF Data Cube Vocabulary to provide statistics would be inefficient. We will present a process for statistical enhancement of an existing dataset published as RDF with an arbitrary ontology and then show how we can use such a dataset to produce charts in Sextant.</p>
+            <p>To enhance a dataset, we use the classes <b>qb:DimensionProperty</b>, <b>qb:MeasureProperty</b> and <b>qb:AttributeProperty</b> along with the property <b>qb:order</b> from the RDF Data Cube Vocabulary. What we want to achieve is to create a single query as shown below, that will adjust itself according to the statistic information we want to extract from a dataset.</p>
+            <div>
+                <img src="./images/statistics/statQuery.png" width="50%" style="margin-left:25%;">
+            </div><br>
+            <p>Using the above vocabulary, to statistically enhance a dataset we first need to define which properties represent the dimension and which represent our measures. A basic rule can be that object properties define dimensions and numeric datatype properties are the measures. We use the property <b>qb:order</b> to represent the hierarchical structure of the ontology and thus the dimensions' hierarchy. The next step is to create the static part of the general query. The static part is a graph pattern that would match all the data in our set. Since we want to extract statistical information, we need to run through the data as a whole and select the data measurements that are needed. Using the introduced technique we can now define some parts of the query as optional and add filters to narrow down the results to our needs. A query produced with this technique is the following:</p>
+            <div>
+                <img src="./images/statistics/statQueryExample.png" width="60%" style="margin-left:20%;">
+            </div><br>
+            <p>In the selection clause we have all the free dimensions and the measurements we want in our results. The where clause consists of the static part along with the optional parts on the selected measures and the filtering on the fixed dimensions. Some bindings are also added to handle null values and ensure that we have fixed size tuples in the results. As with the predefined queries, an expert is needed to make the adjustments described in the ontology and provide the static part of the query as an RDF triplet. This procedure though is simple and needs to be done once for a data set to enhance it for statistical use. When these tasks are finished we can easily produce charts using Sextant interface.</p><br><br>
+            <h4>Producing Charts in Sextant</h4>
+            <p>We can create a chart using the <img src="./images/statistics/stats.png" width="20px"> button in Sextant's main menu bar and then select <b>Create Chart</b> and view all the charts that are loaded be selecting <b>Show Charts</b>, as shown in the figure below.</p>
+            <div>
+                <img src="./images/statistics/menuStats.png" width="20%" style="margin-left:40%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>Then we fill the following form to create one or more charts according to the selected values. First we provide an endpoint <b>URI</b> with the statistically enhanced data and the <b>Port</b> it listens to. When connection is achieved, all the dimensions are presented and we can choose which dimensions to fix. As a result, all the instances of the selected fixed dimensions are presented to select one from each, along with the measures available. When the instances and the measures are chosen we <b>Select chart type</b> and Sextant uses the information given to create the final query and present the results as charts.</p>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/statistics/createChartModal1.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/statistics/createChartModal2.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div><br>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/statistics/createChartModal3.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/statistics/createChartModal4.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div><br>
+            <p>As with map layers, charts are also saved when we choose to save a map. Charts are represented in RDF using a chart ontology and saved as part of the map. Each chart has a title and a legend to assist the user in reading it. All the data on the chart are responsive and we can view the actual values by hovering over a bar or a point. We can view all the charts loaded on the map using the <img src="./images/statistics/moveCharts.png" width="40px"> buttons and download a chart as in image in our browser's download folder using the <img src="./images/statistics/downloadChart.png" width="20px"> button. In the following figures we can view some charts produced in Sextant.</p>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/statistics/chart1.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/statistics/chart2.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div><br>
+        </div>   
+
+    </body>
+</html>
+
+      

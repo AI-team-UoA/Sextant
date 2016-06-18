@@ -33,7 +33,11 @@ import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
@@ -48,6 +52,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -75,6 +80,9 @@ import org.openrdf.sail.generaldb.model.XMLGSDatatypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.jsonldjava.core.JsonLdOptions;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -584,6 +592,45 @@ public class RestServiceImpl {
 		return fileURI;
 	}
 	
+	@POST 
+	@Path("/createFile/{name}/{type}")
+	@Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.TEXT_PLAIN})
+    public String createFile(String data, 
+    						@PathParam("name") String name,
+    						@PathParam("type") String type) {	
+		
+		String fileURI = null;
+		String fileType = "";
+		fileType = fileType.concat("."+type);
+		//System.out.println(data);
+		
+		// generate folder for kml files
+		File dir = new File(context.getRealPath("/") + STORE_FOLDER);  
+		dir.mkdir();	
+		
+		PrintWriter out = null;
+		try{
+			out = new PrintWriter(new File(context.getRealPath("/") + STORE_FOLDER + name + fileType));
+			out.println(data);
+
+			if (PROXY_STATUS.equalsIgnoreCase("on")) {
+				fileURI = HTTP + PROXY_NAME + ":" + PROXY_PORT + context.getContextPath() + "/" + STORE_FOLDER + name + fileType;
+			}
+			else {
+				fileURI = HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath() + "/" + STORE_FOLDER + name + fileType;				
+			}
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		finally {
+			out.close();
+		}
+	
+		return fileURI;
+	}
+	
 	@POST
 	@Path("/downloadFile/")
 	@Consumes({MediaType.TEXT_PLAIN})
@@ -716,20 +763,182 @@ public class RestServiceImpl {
 		return format;		
 	}
 	
-	@POST 
-	@Path("/tester")
-	@Consumes({MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    @Produces({MediaType.TEXT_PLAIN})
-    public String testFunc(String extent) {	
+	public class MyMap {
+		public String id;
+		public String type;
+	    public String title;
+	    public String creator;
+	    public String license;
+	    public String theme;
+	    public String description;
+	    public Extent spatial;
+	    public Vector<Distribution> distributions;
+
+	    public MyMap() {}
+
+	    public MyMap(String url, String title, String creator, String license, String theme, String description, Extent extent, Vector<Distribution> ds) {
+	    	this.id = url;
+	    	this.type = "Dataset";
+	    	this.title = title;
+	    	this.creator = creator;
+	    	this.license = license;
+	    	this.theme = theme;
+	    	this.description = description;
+	    	this.spatial = extent;
+	    	this.distributions = ds;
+	    }
+	}
+	
+	public class Extent {
+		public String type;
+		public String geometry;
 		
-		return extent;		
+		public Extent() {}
+		
+		public Extent(String type, String geometry) {
+			this.type = type;
+			this.geometry = geometry;
+		}
+	}
+	
+	public class Distribution {
+		public String type;
+		public String title;
+		public String accessURL;
+		public String mediaType;
+		
+		public Distribution() {}
+		
+		public Distribution(String type, String title, String url) {
+			this.type = type;
+			this.title = title;
+			this.accessURL = url;
+			this.mediaType = "text/html";
+		}
+	}
+	
+	public class Maps {
+		public String context;
+		public String type;
+		public String title;
+		public Vector<MyMap> datasets;
+		
+		public Maps() {}
+		
+		public Maps(Vector<MyMap> maps, String appURL) {
+			this.context = appURL + "/assets/resources/context.jsonld";
+			this.type = "Catalog";
+			this.title = "Sextant Maps";
+			this.datasets = maps;			
+		}
+		
 	}
 	
 	@GET
-	@Path("/tester2")
-    public String testFunc2(@QueryParam("title") String title, @QueryParam("extent") String extent) {	
+	@Path("/requestMaps")
+	@Produces({MediaType.APPLICATION_JSON})
+    public String requestMaps(@QueryParam("title") String title, @QueryParam("creator") String creator,
+    						  @QueryParam("license") String license, @QueryParam("theme") String theme,
+    						  @QueryParam("extent") String extent) throws EndpointCommunicationException, JsonProcessingException {	
 		
-		return extent + "\n" +title;		
+		String mapURL = HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath() + "?mapid=";
+		
+		Vector<MyMap> mapResults = new Vector<MyMap>();
+		
+		//Reset to default registry values
+		endpointStore = new MapEndpointStore();
+				
+		//Construct query
+		String query = "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
+					   "SELECT ?mapId ?title ?creator ?license ?theme ?description ?geom WHERE { " +
+					   "?mapId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <" + MapVocabulary.MAP + ">  . " +
+					   "?mapId <" + MapVocabulary.HASTITLE + "> ?title . " +
+					   "?mapId <" + MapVocabulary.HASCREATOR + "> ?creator . " +
+					   "?mapId <" + MapVocabulary.HASLICENSE + "> ?license . " +
+					   "?mapId <" + MapVocabulary.HASTHEME + "> ?theme . " +
+					   "?mapId <" + MapVocabulary.HASDESCRIPTION + "> ?description . " +
+					   "?mapId <" + MapVocabulary.HASGEOMETRY + "> ?geom . ";
+		
+		if (title != null) {
+			query = query.concat("FILTER regex(?title, \"" + title + "\", \"i\") . ");
+		}
+		if (creator != null) {
+			query = query.concat("FILTER regex(?creator, \"" + creator + "\", \"i\") . ");
+		}
+		if (license != null) {
+			query = query.concat("FILTER regex(?license, \"" + license + "\", \"i\") . ");
+		}
+		if (theme != null) {
+			query = query.concat("FILTER regex(?theme, \"" + theme + "\", \"i\") . ");
+		}
+		if (extent != null) {
+			String wkt = extentToWKT(extent);
+			System.out.println(wkt);
+			query = query.concat("FILTER (geof:sfIntersects(?geom, \"" + wkt + "\"^^<http://www.opengis.net/ont/geosparql#wktLiteral>)) . ");
+		}
+		query = query.concat("}");
+		
+		//Pose query
+		Vector<String> results = endpointStore.searchForMaps(query);
+		
+		//Parse results
+		for (int i=0; i<results.size(); i=i+7) {
+			Vector<Distribution> ds = new Vector<Distribution>();
+			ds.add(new Distribution("Distribution", "Sextant", mapURL.concat(results.get(i).substring(results.get(i).lastIndexOf("/")+1))));
+			
+			MyMap tempMap = new MyMap(mapURL.concat(results.get(i).substring(results.get(i).lastIndexOf("/")+1, results.get(i).length())), results.get(i+1), results.get(i+2), results.get(i+3), results.get(i+4), results.get(i+5), new Extent("Location", results.get(i+6).substring(results.get(i+6).indexOf("POLYGON"), results.get(i+6).length())), ds);
+			mapResults.add(tempMap);			
+		}	
+		
+		ObjectMapper mapper = new ObjectMapper();
+	
+		String output = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new Maps(mapResults, HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath()));
+		output = output.replaceAll("\"context\"", "\"@context\"");
+		output = output.replaceAll("\"type\"", "\"@type\"");
+		output = output.replaceAll("\"id\"", "\"@id\"");
+				
+		return output;		
+	}
+	
+	public String extentToWKT(String extent) {
+		extent = extent.replace("[", "").replace("]", "").replace(" ", "");
+		String[] parse = extent.split(",");
+		String minx = parse[0];
+		String miny = parse[1];
+		String maxx = parse[2];
+		String maxy = parse[3];
+		
+		return "<http://www.opengis.net/def/crs/EPSG/0/4326> POLYGON(("+
+			   minx + " " + miny + ", " +
+			   maxx + " " + miny + ", " +
+			   maxx + " " + maxy + ", " +
+			   minx + " " + maxy + ", " +
+			   minx + " " + miny + "))";
+	}
+	
+	public String wktToExtent(String wkt) {
+		Vector<Double> allX = new Vector<Double>();
+		Vector<Double> allY = new Vector<Double>();
+		
+		wkt = wkt.substring(wkt.indexOf("((")+2, wkt.indexOf("))"));
+		
+		String[] parse = wkt.split(", ");
+		
+		try {
+			for (int i=0; i<parse.length; i++) {
+				String[] getXY = parse[i].split(" ");
+				allX.add(Double.parseDouble(getXY[0]));
+				allY.add(Double.parseDouble(getXY[1]));
+			}
+			
+			return "[" + Collections.min(allX).toString() + ", " +
+				         Collections.min(allY).toString() + ", " +
+				         Collections.max(allX).toString() + ", " +
+				         Collections.max(allY).toString() + "]";
+		}
+		catch (NumberFormatException e) {
+			return "[-180.0, -90.0, 180.0, 90.0]";
+		}		
 	}
 	
 	@GET
@@ -841,6 +1050,7 @@ public class RestServiceImpl {
 		//Construct query
 		String query = "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
 					   "SELECT ?mapId ?title ?creator ?license ?theme ?description WHERE { " +
+					   "?mapId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <" + MapVocabulary.MAP + ">  . " +
 					   "?mapId <" + MapVocabulary.HASTITLE + "> ?title . " +
 					   "?mapId <" + MapVocabulary.HASCREATOR + "> ?creator . " +
 					   "?mapId <" + MapVocabulary.HASLICENSE + "> ?license . " +
@@ -988,16 +1198,14 @@ public class RestServiceImpl {
 				FileOutputStream outputStream = new FileOutputStream(new File(context.getRealPath("/") + TMP_FOLDER + fileName + KML_FILE_EXT));
 				stSPARQLResultsKMLWriter kmlWriter = new stSPARQLResultsKMLWriter(outputStream);
 					
-				kmlWriter.startQueryResult(results.getBindingNames());
-				
-				
+				kmlWriter.startQueryResult(results.getBindingNames());							
 				while(results.hasNext()){
 					
-					BindingSet bindingSet = results.next();					
+					BindingSet bindingSet = results.next();	
 					kmlWriter.handleSolution(bindingSet);
-				}
-							
+				}							
 				kmlWriter.endQueryResult();
+				
 				if (PROXY_STATUS.equalsIgnoreCase("on")) {
 					fileURI = HTTP + PROXY_NAME + ":" + PROXY_PORT + context.getContextPath() + "/" + TMP_FOLDER + fileName + KML_FILE_EXT;
 				}
@@ -1147,27 +1355,22 @@ public class RestServiceImpl {
 			 * Fix null values
 			 */
 			if (values.get(10) == null) {
-				values.set(10, "10");
+				values.set(10, "");
 			}
 			
-			if (values.get(9) != null) {
-				if (values.get(9).equalsIgnoreCase("./assets/images/map-pin-md.png")) {
-					values.set(9, "http://www.clker.com/cliparts/g/R/z/I/u/o/map-pin-md.png");
-				}
-			}
-			else {
-				values.set(9, "http://www.clker.com/cliparts/g/R/z/I/u/o/map-pin-md.png");
-			}
+			if (values.get(9) == null) {
+				values.set(9, "");
+			}			
 			
 			if (values.get(8) == null) {
-				values.set(8, "#FFB414");
+				values.set(8, "");
 			}
 			
 			if (values.get(7) == null) {
-				values.set(7, "#FFB414");
+				values.set(7, "");
 			}			
 			
-			Layer temp = new Layer(values.get(0), values.get(1), Boolean.parseBoolean(values.get(2)), values.get(3), values.get(4), values.get(5), values.get(6), values.get(7), values.get(8), values.get(9), Double.parseDouble(values.get(10)), values.get(11), values.get(12));
+			Layer temp = new Layer(values.get(0), values.get(1), Boolean.parseBoolean(values.get(2)), values.get(3), values.get(4), values.get(5), values.get(6), values.get(7), values.get(8), values.get(9), values.get(10), values.get(11), values.get(12));
 
 			layersInfo.add(temp);
 		}

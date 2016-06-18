@@ -110,7 +110,7 @@ public class MapMemoryStore {
 	
 	public void saveLayer(int layerNumber, String query, String pathtokml, String layerName, 
 							String endpointURI, String polyStyleColor, String lineStyleColor,
-							String IconRef, Double scale, boolean isTemporal, String imageBox, String type,
+							String IconRef, String scale, boolean isTemporal, String imageBox, String type,
 							String title, String creator, String license, String theme,
 							String createDate, String modifyDate, String geosparql, String description) {
 		
@@ -180,7 +180,7 @@ public class MapMemoryStore {
 				URI iconRef = f.createURI(IconRef);
 				con.add(layerId, MapVocabulary.HASICON, iconRef);
 			}
-			if (scale!=-1.0){
+			if (scale!=null && !scale.equals("")){
 				Literal iconScaleLiteral = f.createLiteral(scale);
 				con.add(layerId, MapVocabulary.HASICONSCALE, iconScaleLiteral);
 			}

@@ -293,7 +293,7 @@ public class MapEndpointStore {
 				+ "WHERE { "
 				+ "?s rdf:type ?class . "
 				+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
-				+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
+		//		+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
 				+ "} "
 				+ "ORDER BY ?super";	
 		
@@ -304,11 +304,13 @@ public class MapEndpointStore {
 				+ "WHERE { "
 				+ "{?class rdf:type rdfs:Class . "
 				+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
-				+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ).} "
+		//		+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
+				+ "} "
 				+ "UNION "
 				+ "{?class rdf:type owl:Class . "
 				+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
-				+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ).} "
+		//		+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
+				+ "} "
 				+ "} "
 				+ "ORDER BY ?super";	
 		
@@ -341,19 +343,19 @@ public class MapEndpointStore {
 				+ "?s ?p ?o . "
 				+ "?p rdf:type owl:DatatypeProperty . "
 				+ "OPTIONAL { ?p rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). }"
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). }"
 				+ "UNION "
 				+ "{?s rdf:type <"+ classURI +"> . "
 				+ "?s ?p ?o . "
 				+ "?p rdf:type owl:ObjectProperty . "
 				+ "OPTIONAL { ?p rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). }"
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). }"
 				+ "UNION "
 				+ "{?s rdf:type <"+ classURI +"> . "
 				+ "?s ?p ?o . "
 				+ "?p rdf:type rdf:Property . "
 				+ "OPTIONAL { ?p rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). }"
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). }"
 				+ "} ";	
 		
 		String queryList = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
@@ -366,7 +368,7 @@ public class MapEndpointStore {
 //				+ "?p rdf:type ?pType . "
 //				+ "FILTER (?pType = owl:DatatypeProperty || ?pType = owl:ObjectProperty || ?pType = rdf:Property) . "
 				+ "OPTIONAL { ?p rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). "				
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). "				
 				+ "} ";	
 		
 		//Use RDFS and OWL to get the properties of a Class. It is faster than queryList1, but we dont get the properties of the super classes
@@ -378,22 +380,22 @@ public class MapEndpointStore {
 				+ "{?x rdf:type owl:DatatypeProperty . "
 				+ "?x rdfs:domain <"+ classURI +"> . "
 				+ "OPTIONAL { ?x rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
 				+ "UNION "
 				+ "{?x rdf:type owl:ObjectProperty . "
 				+ "?x rdfs:domain <"+ classURI +"> . "
 				+ "OPTIONAL { ?x rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
 				+ "UNION "
 				+ "{?x rdf:type rdf:Property . "
 				+ "?x rdfs:domain <"+ classURI +"> . "
 				+ "OPTIONAL { ?x rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
 				+ "UNION "
 				+ "{?x rdfs:subPropertyOf+ rdf:Property . "
 				+ "?x rdfs:domain <"+ classURI +"> . "
 				+ "OPTIONAL { ?x rdfs:range ?range . } . "
-				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
+//				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ).} "
 				+ "}";
 		
 		//Initialize the endpoint given by the user and pose query
@@ -872,10 +874,23 @@ public class MapEndpointStore {
 		
 			while (results.hasNext()) {
 				BindingSet bindingSet = results.next();
-				for (int i = 0; i < bindingSet.size(); i++)
+				for (int i = 0; i < bindingNames.size(); i++)
 				{
-					Value value =  bindingSet.getValue(bindingNames.get(i));
-					res.add(value.stringValue());	
+					Value value = null;
+					try {
+						value =  bindingSet.getValue(bindingNames.get(i));
+					}
+					finally {
+						
+					}
+					
+					if (value != null) {
+						//System.out.println(bindingNames.get(i) + ": " + value.stringValue());
+						res.add(value.stringValue());	
+					}else {
+						//System.out.println(bindingNames.get(i) + ": null");
+						res.add("null");
+					}
 				}
 			}
 			

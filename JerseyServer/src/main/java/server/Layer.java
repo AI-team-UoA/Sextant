@@ -24,13 +24,13 @@ public class Layer {
 	private String fillColor;
 	private String strokeColor;
 	private String iconUri;
-	private Double iconSize;
+	private String iconSize;
 	private String imageBox;
 	private String type;
 	
 	public Layer (String name, String uri, Boolean isTemp, String fileType, 
 			String queryText, String endpoint, String mapId, String fillColor,
-			String strokeColor, String iconUri, Double iconSize, String bbox, String type) {
+			String strokeColor, String iconUri, String iconSize, String bbox, String type) {
 		this.name = name;
 		this.uri = uri;
 		this.isTemp = isTemp;
@@ -86,7 +86,7 @@ public class Layer {
 		return iconUri;
 	}
 
-	public Double getIconSize() {
+	public String getIconSize() {
 		return iconSize;
 	}
 	

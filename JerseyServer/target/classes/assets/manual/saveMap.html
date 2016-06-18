@@ -1,0 +1,88 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div>   
+    
+    <div id="breadcrumbsBar">
+        <ol class="breadcrumb">
+            <li>Maps</li>
+            <li class="active"><a href="./saveMap.html">Create/Save</a></li>
+        </ol>
+    </div> 
+
+    <div class="container" id="helpInfo">
+        <h3 id="helpTitle">Creating and saving-updating a map</h3>
+        <p>In Sextant we can group our layers under thematic maps. Each map we create is a resource that has a unique URI that can be used to share and load the map. To create or update a map we use the <img src="./images/maps/plus.png" width="20px"> button in Sextant's main menu bar and then select <b>Save map</b> as shown in the figure below.</p>
+        <div>
+                <img src="./images/maps/menuSaveMap.png" width="20%" style="margin-left:40%; border-style: groove; border-width:2px">
+        </div><br>
+        <p>We then have to fill the following form to create or update our map. The first five fields in the form are the metadata that act as the map legend:</p>
+        <ul>
+            <li><b>Title:</b> A title for our map</li>
+            <li><b>Creator:</b> The creator of the map</li>
+            <li><b>License:</b> The license of the map</li>
+            <li><b>Theme:</b> The map theme</li>
+            <li><b>Description:</b> A small text that describes our map</li>
+        </ul>
+        <p>The next four fields are used to select the map registry in which the map will be saved:</p>
+        <ul>
+            <li><b>URI:</b> The URI of the registry endpoint</li>
+            <li><b>Port:</b> The port in which the endpoint listens to (default value is 80)</li>
+            <li><b>User:</b> The username to connect to the endpoint</li>
+            <li><b>Password:</b> The password to connect to the endpoint</li>
+        </ul>
+        <p>To select if we want to create a new map or update the map that is currently loaded we use the <b>Select create mode</b> drop-down list. Finally we can choose which of the loaded layers will be part of our map by checking the checkbox in from of each layer's name.</p>
+        <div>
+                <img src="./images/maps/saveMapModal.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+        </div><br><br>
+        <p>Map registries are SPARQL endpoints that hold the information to recreate maps using Sextant. Each map is automatically transformed into a set of RDF triples that are used to represent it. The user can leave the <b>Endpoint Information</b> fields empty. In this case Sextant will use the default map registry that is provided in the <b>server-configuration.properties</b> under <i>/Sextant/WEB-INF/classes/server</i>. There are seven parameters that should be set to define our default registry in the configuration file:</p>
+        <ul>
+            <li>HOSTNAME = URI of the registry host</li>
+            <li>PORT = The port the registry listens to</li>
+            <li>ENDPOINTNAME_STORE = The registry store URI</li>
+            <li>ENDPOINTNAME_QUERY = The registry query URI</li>
+            <li>ENDPOINTNAME_UPDATE = The registry update URI</li>
+            <li>USER_STORE = Username to connect to registry</li>
+            <li>PASS_STORE = Password to connect to registry</li>
+        </ul>
+        <p>When we create/update the map two things change in the UI of Sextant. First, a new variable is added to the query string of the URL in our browser. This variable is named <b>mapid</b> and has as value the unique identifier for the map. This URL can be used to share and load the map. Second, the <b>Map information</b> panel is populated with the map metadata and can act as a legend, as shown in the figure below.</p>
+        <div>
+                <img src="./images/maps/mapLegend.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+        </div>
+    </div>    
+        
+        
+        
+    </body>
+</html>
+
+      

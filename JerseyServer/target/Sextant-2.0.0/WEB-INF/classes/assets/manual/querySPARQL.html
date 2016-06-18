@@ -1,0 +1,60 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div>  
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Layers</li>
+                <li>Create new Layer</li>
+                <li class="active"><a href="./querySPARQL.html">Query SPARQL Endpoint</a></li>
+            </ol>
+        </div> 
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Create a layer from a SPARQL Endpoint</h3>
+            <p>We can create a new layer by posing a query to a SPARQL endpoint using the <img src="./images/createLayer/search.png" width="20px"> button in Sextant's main menu bar and then select to <b>Pose a Query</b> as shown in the figure below. </p>
+            <div>
+                <img src="./images/createLayer/menuQuery.png" width="20%" style="margin-left:40%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>We then have to fill in the following form to create our layer. First we can select the type of the endpoint. We can choose between SPARQL endpoint and the <a href="https://www.ordnancesurvey.co.uk" target="_blank">Ordnance Survey</a> SPARQL endpoint. If we choose the SPARQL endpoint option we need to provide the URI of the endpoint in the field <b>URI</b> and the port it listens to in the field <b>Port:80</b> (by default the port is set to 80). If we choose the OS SPARQL endpoint these fields are filled automatically. The next field is the name of the layer. Layer names are unique in Sextant, so each layer must have a different name. In the <b>Query</b> field we provide the SPARQL query, the results of which will create our layer. To write our query we can use <a href="http://www.opengeospatial.org/standards/geosparql" target="_blank">GeoSPARQL</a> or <a href="http://www.strabon.di.uoa.gr/stSPARQL" target="_blank">stSPARQL</a> if the endpoint is a spatiotemporal <a href="http://www.strabon.di.uoa.gr/about" target="_blank">Strabon</a> endpoint. If the query also returns temporal information, we can select the <b>Is a temporal layer</b> checkbox to create the associated events in the Timeline.</p>
+            <div>
+                <img src="./images/createLayer/query.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div>
+        </div>    
+        
+        
+        
+    </body>
+</html>
+
+      

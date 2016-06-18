@@ -1,0 +1,118 @@
+<html lang="en" id="myHTMLPage">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Manual</title>
+
+        <!-- Bootstrap core CSS/JS/jQuery/Moment -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="../css/bootstrap-datetimepicker.css" rel="stylesheet">
+        <script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="../js/moment-with-locales.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/bootstrap-datetimepicker.js"></script>   
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../font-awesome-4.3.0/css/font-awesome.min.css">
+
+          <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../js/ie10-viewport-bug-workaround.js"></script>
+        
+        <!-- Custom CSS/JS -->
+        <link href="../css/manual.css" rel="stylesheet" />
+        <script type="text/javascript" src="./manual.js"></script>
+        
+    </head>
+
+    <body onload="loadMenu()">
+        <div id="menuBar"></div> 
+    
+        <div id="breadcrumbsBar">
+            <ol class="breadcrumb">
+                <li>Extra Functionality</li>
+                <li class="active"><a href="./explore.html">Explore</a></li>
+            </ol>
+        </div>    
+
+        <div class="container" id="helpInfo">
+            <h3 id="helpTitle">Explore data in a SPARQL Endpoint</h3>
+            <p>Sextant provides an explore functionality that allows the exploration of a SPARQL endpoint. This feature supports three basic objectives:</p>
+            <ul>
+                <li>Visualize the ontology of the data in the endpoint</li>
+                <li>Describe URIs</li>
+                <li>Create layers by applying filters on a class</li>
+            </ul><br><br>
+            <h4>Visualize the ontology</h4>
+            <p>To use the explore functionality we go to the <b>Explore</b> panel where we can provide the <b>URI</b> of a SPARQL endpoint and the <b>Port</b> it listens to, as shown in the figure below.</p>
+            <div>
+                <img src="./images/explore/explorePanel.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>When we <b>Connect</b> to the endpoint we get a tree structure of the ontology <b>Classes</b>. Each class is represented with a button where we show the name of the class and the number of sub-classes it has, as shown in the figure below.</p>
+            <div>
+                <img src="./images/explore/exploreExample.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>When we click on a class button, the class expands and we can view the <img src="./images/explore/viewPropsButton.png" width="20px"> button that can be used to retrieve all the properties of the class along with their range, the <b>URI</b> of the class and the sub-classes. In the figures below we show an example of these features. When the properties of a class are retrieved, the class button color changes to green, and the <img src="./images/explore/viewPropsButton.png" width="20px"> button is disabled.</p>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/explore/exploreClass.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/explore/exploreClassProps.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div><br><br>
+            <h4>Describe URIs</h4>
+            <p>Each of the <b>URIs</b> that appear in the explore panel can be resolved. When we click on a URI we will get a pop-up that describes the URI and presents all the triples in the endpoint that have this URI in the <b>subject</b>, <b>predicate</b> or <b>object</b> position, as shown in the figure below. Each of the URIs that appear in the describe pop-up are also resolvable and will update the window with the description of the chosen URI. In this manner we can explore our data using the links of the URIs.</p>
+            <div>
+                <img src="./images/explore/describe.png" width="100%" style="border-style: groove; border-width:2px">
+            </div><br><br>
+            <h4>Create layers</h4>
+            <p>In some cases we can also use the explore panel to create layers on the map by applying filters to the properties of a class. If a class in the explore panel has a geometry property, then Sextant is able to create layers out of the data of this class. When we chose to retrieve the properties of a class, Sextant looks for properties with the names <b>asWKT</b>, <b>asGML</b> and <b>hasGeometry</b> that are used to represent geometries. If one or more of these properties are available for the class then a new set of buttons <img src="./images/explore/filterMenu.png" width="80px"> appear, as shown in the following figure.</p>
+            <div>
+                <img src="./images/explore/exploreFilters.png" width="60%" style="margin-left:20%; border-style: groove; border-width:2px">
+            </div><br>
+            <p>Each property of the class can have a <img src="./images/explore/filterButton.png" width="20px"> button that allows the creation of filters over this property. The <img src="./images/explore/filterButton.png" width="20px"> appears under the range URI of a property if that is one of the following:</p>
+            <ul>
+                <li>http://www.w3.org/2001/XMLSchema#string</li>
+                <li>http://www.w3.org/2001/XMLSchema#double</li>
+                <li>http://www.w3.org/2001/XMLSchema#float</li>
+                <li>http://www.w3.org/2001/XMLSchema#decimal</li>
+                <li>http://www.w3.org/2001/XMLSchema#integer</li>
+                <li>http://www.w3.org/2001/XMLSchema#boolean</li>
+                <li>http://www.w3.org/2001/XMLSchema#dateTime</li>
+                <li>Geometry property</li>
+            </ul>
+            <p>When we click on of these <img src="./images/explore/filterButton.png" width="20px"> buttons, a pop-up appears, depending on the range of the property, to allow the creation of filters. Each of these pop-ups can lead to the creation of up-to three filters, but we can click the same <img src="./images/explore/filterButton.png" width="20px"> again to apply more filters on this property if needed. In the following figures we can see the forms to create spatial filters and numeric filters on properties.</p>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/explore/exploreSpatialFilter.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/explore/exploreNumericFilter.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div><br>
+            <p>Each filter has three attributes which are explaned below:</p>
+            <ul>
+                <li><b>TYPE: </b>The type of a filter can be either <i>REGULAR</i> or <i>OPTIONAL</i>. Regular filters mean that this filter is a must condition for the instances of the class, whereas optional filters mean that this filter is not obligatory.</li>
+                <li><b>RULE: </b>The rule attribute defines the operator we will use for the filter.</li>
+                <li><b>VALUE: </b>The value attribute defines the value against which the operator will be applied.</li>
+            </ul>
+            <p>When a filter is created on a property, the <img src="./images/explore/filterButton.png" width="20px"> button changes into <img src="./images/explore/filterOnButton.png" width="20px"> to indicate that filters are applied on this property. We can view all the filters that are applied on the class by clicking the <img src="./images/explore/allFilters.png" width="20px"> button and remove all the filters from a class using the <img src="./images/explore/removeFilters.png" width="20px"> button. When we have applied all the desired filters, we can create a layer from this class using the <img src="./images/explore/createLayerFilter.png" width="20px"> button. We then get a pup-up where we provide a name for the layer and create it on the map.</p>
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/explore/viewFilters.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <img src="./images/explore/filterCreateLayer.png" width="100%" style="border-style: groove; border-width:2px">
+                </div>
+            </div><br>
+        </div>
+        
+    </body>
+</html>
+
+      
