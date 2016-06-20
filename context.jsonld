@@ -20,6 +20,7 @@
     "Distribution": "dcat:Distribution",
     "distributions": {"@id": "dcat:distribution", "@container": "@set"},
     "accessURL": { "@id": "dcat:accessURL", "@type": "@id" },
-    "mediaType": {"@id": "dcat:mediaType", "@language": null}
+    "mediaType": {"@id": "dcat:mediaType", "@language": null},
+    "landingPage": {"@id": "dcat:landingPage", "@type": "@id" }
   }
 }
