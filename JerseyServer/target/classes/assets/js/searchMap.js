@@ -1,16 +1,24 @@
 var hostSearch, endpointSearch, portSearch;
 var selectedMapId;
 
+function loadMapSearchMap() {
+	$('#modalMapSearch').on('shown.bs.modal', function () {
+		resetSearchMapForm();
+		initSearchMap();
+	});
+}
+
 function initSearchMap() {
-	document.getElementById('searchMapExtentForm').style.display = 'block';
-	document.getElementById('drawExtentButton').disabled = true;
+	//document.getElementById('searchMapExtentForm').style.display = 'block';
+	//document.getElementById('drawExtentButton').disabled = true;
 	
 	//Initialize map
+	var currentView = map.getView().getCenter();
 	mapFilter = new ol.Map({
-        layers: [base, vector],
+        layers: [bingAerialLabels, vector],
         target: 'mapSearchExtent',
         view: new ol.View({
-          center: center,
+          center: currentView,
           zoom: 6
         })
     });
@@ -23,8 +31,8 @@ function initSearchMap() {
 }
 
 function resetSearchMapForm() {
-	document.getElementById('searchMapExtentForm').style.display = 'none';
-	document.getElementById('drawExtentButton').disabled = false;
+	//document.getElementById('searchMapExtentForm').style.display = 'none';
+	//document.getElementById('drawExtentButton').disabled = false;
 	
 	var divRef = document.getElementById('mapSearchExtent');
 	while (divRef.firstChild) {

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,7 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 	public EndpointResult query(String sparqlQuery, stSPARQLQueryResultFormat format, String endpointType) throws IOException {
 		assert(format != null);
 		
+		//System.out.println(URLEncoder.encode(sparqlQuery, "UTF-8"));
 		// create a post method to execute
 		HttpPost method = new HttpPost(getConnectionURL());
 		
@@ -76,16 +78,19 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 		params.add(new BasicNameValuePair("query", sparqlQuery));
 		
 		//Add required parameters for Vistuoso SPARQL endpoints
-		params.add(new BasicNameValuePair("default-graph-uri", "http://"+endpointType));
+		if (!getConnectionURL().contains("openrdf-sesame")) {
+			params.add(new BasicNameValuePair("default-graph-uri", "http://"+endpointType));
+		}
 		
 		UrlEncodedFormEntity encodedEntity = new UrlEncodedFormEntity(params, Charset.forName("UTF-8"));
 		method.setEntity(encodedEntity);
+		
 		
 		// set the content type
 		method.setHeader("Content-Type", "application/x-www-form-urlencoded");
 		
 		// set the accept format
-		method.addHeader("Accept", format.getDefaultMIMEType());
+		method.addHeader("Accept", format.getDefaultMIMEType());		
 		
 		try {
 			// response that will be filled next

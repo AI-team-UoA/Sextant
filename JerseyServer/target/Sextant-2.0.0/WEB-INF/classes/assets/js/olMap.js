@@ -213,6 +213,10 @@ function initMap(results, status, jqXHR) {
  * (called on Window load)
  */
 function initialize() {
+	loadBingsSearchLoadMap();
+	loadBingsSearchFilterLayer();
+	loadBingsSearchExtentFilter();
+	
 	if (!map){
 		document.getElementById('tmContainer').style.right = '-3000px';
 		document.getElementById('statsContainer').style.right = '-3000px';
@@ -461,8 +465,7 @@ function initialize() {
 		                
 	    });
 	    		
-		initTimeline();
-	    	 	    			              
+		initTimeline();		              
 	}
 	
 	//Parse host to determine if the client is bind to a server or stand-alone
@@ -490,6 +493,7 @@ function initialize() {
     
     document.getElementsByClassName('timeline-band-0')[0].style.backgroundColor = 'rgba(255,255,255,0)';
     document.getElementsByClassName('timeline-band-1')[0].style.backgroundColor = 'rgba(255,255,255,0)';
+    
 }
 
 function clearOverlayFeatures() {

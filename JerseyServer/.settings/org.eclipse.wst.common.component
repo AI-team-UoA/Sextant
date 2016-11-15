@@ -7,6 +7,6 @@
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/webapp"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/webapp/assets/manual"/>
         <property name="java-output-path" value="/JerseyREST/target/classes"/>
-        <property name="context-root" value="SextantOL3"/>
+        <property name="context-root" value="Sextant"/>
     </wb-module>
 </project-modules>

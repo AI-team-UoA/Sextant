@@ -64,6 +64,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
@@ -83,8 +85,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jsonldjava.core.JsonLdOptions;
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataParam;
 
 import eu.earthobservatory.constants.GeoConstants;
 import eu.earthobservatory.org.StrabonEndpoint.client.EndpointResult;
@@ -99,6 +99,14 @@ import server.MapEndpointStore;
 import server.MapMemoryStore;
 import server.MapVocabulary;
 import server.ServerConfiguration;
+import twitter4j.GeoLocation;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
+import twitter4j.conf.ConfigurationBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
@@ -106,7 +114,6 @@ import javax.imageio.stream.ImageInputStreamImpl;
 import javax.servlet.ServletContext; 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
-
 
 
 /**
@@ -141,6 +148,11 @@ public class RestServiceImpl {
 	private static final String BING_MAPS_KEY			= ServerConfiguration.getString("BING_MAPS_KEY");
 		
 	public static final String ENDPOINT_FAILURE_MSG	= "Error during communication with the SPARQL endpoint at ";
+	
+	public static final String CONSUMER_KEY				= ServerConfiguration.getString("CONSUMER_KEY");
+	public static final String CONSUMER_SECRET			= ServerConfiguration.getString("CONSUMER_SECRET");
+	public static final String ACCESS_TOKEN				= ServerConfiguration.getString("ACCESS_TOKEN");
+	public static final String ACCESS_TOKEN_SECRET		= ServerConfiguration.getString("ACCESS_TOKEN_SECRET");
 		
 	/**
 	 * The store keeping the RDF representation of the currently visible map
@@ -156,6 +168,9 @@ public class RestServiceImpl {
 	 * The name of the web application
 	 */
 	private static String webappName;
+	
+	private ConfigurationBuilder cb = new ConfigurationBuilder();
+	private Twitter twitter;
 	/****************************************************************************************************/
 	
 	@Context
@@ -182,6 +197,14 @@ public class RestServiceImpl {
         //System.out.println("********* servlet.getRemotePort(): "+servlet.getRemotePort());
         
         //System.out.println("********* context.getContextPath(): "+context.getContextPath());
+        
+        cb.setDebugEnabled(true)
+		  .setOAuthConsumerKey(CONSUMER_KEY)
+		  .setOAuthConsumerSecret(CONSUMER_SECRET)
+		  .setOAuthAccessToken(ACCESS_TOKEN)
+		  .setOAuthAccessTokenSecret(ACCESS_TOKEN_SECRET);
+			
+		twitter = new TwitterFactory(cb.build()).getInstance();
 	}
 	
 	@POST 
@@ -771,6 +794,7 @@ public class RestServiceImpl {
 	    public String license;
 	    public String theme;
 	    public String description;
+	    public String landingPage;
 	    public Extent spatial;
 	    public Vector<Distribution> distributions;
 
@@ -784,6 +808,7 @@ public class RestServiceImpl {
 	    	this.license = license;
 	    	this.theme = theme;
 	    	this.description = description;
+	    	this.landingPage = url;
 	    	this.spatial = extent;
 	    	this.distributions = ds;
 	    }
@@ -797,7 +822,19 @@ public class RestServiceImpl {
 		
 		public Extent(String type, String geometry) {
 			this.type = type;
-			this.geometry = geometry;
+			
+			String[] parse=geometry.replace("POLYGON((", "").replace("))", "").replace(", ", ",").split(",");
+			String lonLatGeom = "POLYGON((";
+			for (int i=0; i<parse.length; i++) {
+				String[] latLon = parse[i].split(" ");
+				lonLatGeom += latLon[1]+" "+latLon[0];
+				if (i!=parse.length-1) {
+					lonLatGeom += ", ";
+				}
+			}
+			lonLatGeom += "))";
+
+			this.geometry = lonLatGeom;
 		}
 	}
 	
@@ -826,7 +863,7 @@ public class RestServiceImpl {
 		public Maps() {}
 		
 		public Maps(Vector<MyMap> maps, String appURL) {
-			this.context = appURL + "/assets/resources/context.jsonld";
+			this.context = "https://raw.githubusercontent.com/zefyros/Sextant/master/context.jsonld";
 			this.type = "Catalog";
 			this.title = "Sextant Maps";
 			this.datasets = maps;			
@@ -837,7 +874,7 @@ public class RestServiceImpl {
 	@GET
 	@Path("/requestMaps")
 	@Produces({MediaType.APPLICATION_JSON})
-    public String requestMaps(@QueryParam("title") String title, @QueryParam("creator") String creator,
+    public Response requestMaps(@QueryParam("title") String title, @QueryParam("creator") String creator,
     						  @QueryParam("license") String license, @QueryParam("theme") String theme,
     						  @QueryParam("extent") String extent) throws EndpointCommunicationException, JsonProcessingException {	
 		
@@ -849,7 +886,8 @@ public class RestServiceImpl {
 		endpointStore = new MapEndpointStore();
 				
 		//Construct query
-		String query = "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
+		String query = "PREFIX strdf: <http://strdf.di.uoa.gr/ontology#> " +
+					   "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
 					   "SELECT ?mapId ?title ?creator ?license ?theme ?description ?geom WHERE { " +
 					   "?mapId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <" + MapVocabulary.MAP + ">  . " +
 					   "?mapId <" + MapVocabulary.HASTITLE + "> ?title . " +
@@ -874,7 +912,7 @@ public class RestServiceImpl {
 		if (extent != null) {
 			String wkt = extentToWKT(extent);
 			System.out.println(wkt);
-			query = query.concat("FILTER (geof:sfIntersects(?geom, \"" + wkt + "\"^^<http://www.opengis.net/ont/geosparql#wktLiteral>)) . ");
+			query = query.concat("FILTER (strdf:mbbIntersects(?geom, \"" + wkt + "\"^^<http://www.opengis.net/ont/geosparql#wktLiteral>)) . ");
 		}
 		query = query.concat("}");
 		
@@ -897,7 +935,7 @@ public class RestServiceImpl {
 		output = output.replaceAll("\"type\"", "\"@type\"");
 		output = output.replaceAll("\"id\"", "\"@id\"");
 				
-		return output;		
+		return Response.ok().entity(output).header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Methods", "GET").build();		
 	}
 	
 	public String extentToWKT(String extent) {
@@ -939,6 +977,94 @@ public class RestServiceImpl {
 		catch (NumberFormatException e) {
 			return "[-180.0, -90.0, 180.0, 90.0]";
 		}		
+	}
+	
+	public class TwitterResults {
+		public String twitterIds;
+		public long sinceId;
+		public long maxId;
+		
+		TwitterResults (String twitterIds, long sinceId, long maxId) {
+			this.twitterIds = twitterIds;
+			this.sinceId = sinceId;
+			this.maxId = maxId;
+		}
+	}
+	
+	@GET
+	@Path("/findTwittsRest")
+	@Produces({MediaType.TEXT_PLAIN})
+    public String twitterSearchRest(@QueryParam("keys") String searchKeys, 
+    								@QueryParam("sinceId") long sinceId,
+    								@QueryParam("maxId") long maxId,
+    								@QueryParam("update") boolean update,
+    								@QueryParam("location") String location) {
+		
+		final Vector<String> results = new Vector<String>();  
+		String output = "";
+		long higherStatusId = Long.MIN_VALUE;
+		long lowerStatusId = Long.MAX_VALUE;
+		
+        Query searchQuery = new Query(searchKeys);
+        searchQuery.setCount(50);
+        searchQuery.setResultType(Query.ResultType.recent);
+        
+        if (sinceId != 0) {
+        	if (update) {
+            	searchQuery.setSinceId(sinceId);
+        	}
+        	higherStatusId = sinceId;
+        }
+        if (maxId != 0) {
+        	if (!update) {
+            	searchQuery.setMaxId(maxId); 
+        	}
+        	lowerStatusId = maxId;
+        }  
+        if (location != null) {
+        	double lat = Double.parseDouble(location.substring(0, location.indexOf(",")));
+        	double lon = Double.parseDouble(location.substring(location.indexOf(",")+1, location.length()));
+        	
+        	searchQuery.setGeoCode(new GeoLocation(lat, lon), 10, Query.KILOMETERS);
+        }
+         
+        try {
+        	QueryResult qResult = twitter.search(searchQuery);
+        	
+			for (Status status : qResult.getTweets()) {
+		        //System.out.println(Long.toString(status.getId())+"  ***  "+Long.toString(status.getUser().getId())+"  ***  "+status.isRetweet()+"  ***  "+status.isRetweeted());
+		        
+		        higherStatusId = Math.max(status.getId(), higherStatusId);
+		        lowerStatusId = Math.min(status.getId(), lowerStatusId);
+		        
+		        if (!status.isRetweet()) {
+		        	if (status.getGeoLocation() != null) {
+		        		System.out.println(Long.toString(status.getId())+"@"+Double.toString(status.getGeoLocation().getLatitude())+","+Double.toString(status.getGeoLocation().getLongitude()));		        				        		
+		        		results.add(Long.toString(status.getId())+
+		        					"@"+Double.toString(status.getGeoLocation().getLatitude())+
+		        					","+Double.toString(status.getGeoLocation().getLongitude()));
+		        	}
+		        	else {
+		        		results.add(Long.toString(status.getId())+"@null");
+		        	}
+		        }
+		    }
+			
+		} catch (TwitterException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
+        TwitterResults resultsObj = new TwitterResults(results.toString(), higherStatusId, lowerStatusId);
+        ObjectMapper mapper = new ObjectMapper();
+		try {
+			output = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(resultsObj);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        return output;		
 	}
 	
 	@GET
@@ -1048,7 +1174,8 @@ public class RestServiceImpl {
 		}
 				
 		//Construct query
-		String query = "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
+		String query = "PREFIX strdf: <http://strdf.di.uoa.gr/ontology#> " +
+				       "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
 					   "SELECT ?mapId ?title ?creator ?license ?theme ?description WHERE { " +
 					   "?mapId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <" + MapVocabulary.MAP + ">  . " +
 					   "?mapId <" + MapVocabulary.HASTITLE + "> ?title . " +
@@ -1071,10 +1198,10 @@ public class RestServiceImpl {
 			query = query.concat("FILTER regex(?theme, \"" + theme + "\", \"i\") . ");
 		}
 		if (!extent.equalsIgnoreCase("none")) {
-			query = query.concat("FILTER (geof:sfIntersects(?geom, \"" + extent + "\"^^<http://www.opengis.net/ont/geosparql#wktLiteral>)) . ");
+			query = query.concat("FILTER (strdf:mbbIntersects(?geom, \"" + extent + "\"^^<http://www.opengis.net/ont/geosparql#wktLiteral>)) . ");
 		}
 		query = query.concat("}");
-		//System.out.println(query);
+		System.out.println(query);
 		
 		//Pose query
 		Vector<String> results = endpointStore.searchForMaps(query);
@@ -1191,7 +1318,8 @@ public class RestServiceImpl {
 
 				//Set the geometry literal to gmlLiteral
 				xml = xml.replaceAll("http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", GeoConstants.GML);
-									
+				xml = xml.replaceAll("&lt;gml:Polygon&gt;", "&lt;gml:Polygon srsName=\"EPSG:27700\"&gt;");
+				
 				InputStream inputStream = new ByteArrayInputStream(xml.getBytes("UTF-8"));  
 				TupleQueryResult results = QueryResultIO.parse(inputStream, TupleQueryResultFormat.SPARQL);
 				
@@ -1200,7 +1328,6 @@ public class RestServiceImpl {
 					
 				kmlWriter.startQueryResult(results.getBindingNames());							
 				while(results.hasNext()){
-					
 					BindingSet bindingSet = results.next();	
 					kmlWriter.handleSolution(bindingSet);
 				}							
@@ -1231,7 +1358,7 @@ public class RestServiceImpl {
 		
 		try {
 			GeneralSpatialEndpoint endpoint = new GeneralSpatialEndpoint(hostname, port, strabonendpoint);
-			EndpointResult response = endpoint.queryForKML(query, hostname);		
+			EndpointResult response = endpoint.queryForKML(query, hostname);
 			if (response.getStatusCode() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : " + response.getStatusCode() + " " + response.getStatusText());
 			}

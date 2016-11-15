@@ -554,7 +554,44 @@ function clearDiscoverModal() {
 	}
 }
 
+function loadMapSearchMapExplore() {
+	$('#modalSpatialFilter').modal('show');
+	$('#modalSpatialFilter').on('shown.bs.modal', function () {
+		resetSearchMapFormExplore();
+		initSearchMapExplore();
+	});
+}
 
+function initSearchMapExplore() {
+	//Initialize map
+	var currentView = map.getView().getCenter();
+	mapFilter = new ol.Map({
+        layers: [bingAerialLabels, vector],
+        target: 'mapExploreExtentFilter',
+        view: new ol.View({
+          center: currentView,
+          zoom: 6
+        })
+    });
+	
+	document.getElementsByClassName('ol-zoom')[0].style.top = '10px';
+	document.getElementsByClassName('ol-zoom')[0].style.left = '10px';
+   
+    addInteraction();
+	
+}
 
-
+function resetSearchMapFormExplore() {
+	//document.getElementById('searchMapExtentForm').style.display = 'none';
+	//document.getElementById('drawExtentButton').disabled = false;
+	
+	var divRef = document.getElementById('mapExploreExtentFilter');
+	while (divRef.firstChild) {
+		divRef.removeChild(divRef.firstChild);
+	}
+	
+	//document.getElementById('exploreMapExtentFormFilter').reset();
+	
+	vector.getSource().clear();
+}
 

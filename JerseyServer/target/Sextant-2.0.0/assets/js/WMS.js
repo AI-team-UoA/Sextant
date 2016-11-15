@@ -61,14 +61,18 @@ function addWMSLayer(name, url, layersWMS, type, styleId, bbox, isTemp, timeStam
      	     		      'TILED': true,
      	     		      'VERSION': type[1],
      	     		      'STYLES': styleId,
-     	     		      'TIME': timeStamp};
+     	     		      'TIME': timeStamp,
+     	     		      'FORMAT': 'image/png'};
 		}
 		else {
 			parameters = {'LAYERS': layersWMS,
            	     		  'TILED': true,
            	     		  'VERSION': type[1],
-           	     		  'STYLES': styleId};
+           	     		  'STYLES': styleId,
+           	     		  'FORMAT': 'image/png'};
 		}
+		console.log(url);
+		console.log(parameters);
 		var layer = new ol.layer.Tile({
 			  title: name,
 	          extent: [-20026376.39, -20048966.10, 20026376.39, 20048966.10],
@@ -102,6 +106,7 @@ function getWMSList() {
         type: 'GET',
         url: url + '?request=GetCapabilities&version='+serverVersion+'&service=WMS',              
         timeout: ajaxTimeout,
+        crossOrigin: true,
         success: parseWMSResults,
         error: printError
     });	
@@ -167,7 +172,8 @@ function updateWMSname() {
 function cloneWMSList(url, name, id, styleId, type, isTemp) {	
 	$.ajax({
         type: 'GET',
-        url: url + '?request=GetCapabilities&version='+type[1]+'&service=WMS',              
+        url: url + '?request=GetCapabilities&version='+type[1]+'&service=WMS',   
+        crossOrigin: true,
         timeout: ajaxTimeout,
         success: parseClonedWMSResults,
         error: printError,

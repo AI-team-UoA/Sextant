@@ -78,7 +78,14 @@ function initTimeline() {
  */
 function parseTimelineFeatures(layer, uri) {
 	$.get(uri, function(data) {
-		var features = layer.getSource().getSource().getFeatures();		
+		var tempFeatures = layer.getSource().getSource().getFeatures();
+		
+		//Clear the features from the layer and add them as we parse the KML file so that the features array,
+		//and the placemarks are in the same order.
+		var myReader = new ol.format.KML();
+		var features = myReader.readFeatures(data, {dataProjection: 'EPSG:4326',
+													featureProjection: 'EPSG:3857'});		
+				
 		var position = 0;
 		for (var i=0; i<mapLayers.length; i++) {
 			if (mapLayers[i].name == layer.get('title')) {
@@ -99,7 +106,20 @@ function parseTimelineFeatures(layer, uri) {
             	end = '2500-01-01T00:00:00';
             }
             
-            var featureID = features[i]; 
+                        
+            var featureID = tempFeatures[i];
+            
+            for (var j=0; j<tempFeatures.length; j++) {
+            	var layerFeatureClone = featureToString(tempFeatures[j]);
+            	var tempFeatureClone = featureToString(features[i]);
+            	if (layerFeatureClone === tempFeatureClone) {
+                	featureID = tempFeatures[j];
+                	break;
+                }
+            }
+            
+            
+            
             var icon = mapLayers[position].icon;
             if (icon == '') {
             	icon = './assets/images/map-pin-md.png';
@@ -113,6 +133,26 @@ function parseTimelineFeatures(layer, uri) {
 	});
 	
 	updateCurrentTime();
+}
+
+function featureToString(feature) {
+	var ob = '{';
+	var keys = feature.getKeys();
+	for (var i=0; i<keys.length; i++) {
+		if (keys[i] != 'geometry') {
+			ob += keys[i]+' : "'+feature.get(keys[i])+'"';
+		}
+		else {
+			ob += keys[i]+' : "'+feature.getGeometry().getExtent().toString()+'"';
+		}
+		
+		if (i != keys.length-1) {
+			ob += ',\n';
+		}
+	}
+	ob += '}';
+	//console.log(ob);
+	return ob;
 }
 
 function checkElement(element, name) {
@@ -197,6 +237,8 @@ function computeVisibility(begin, end, evt) {
 	var evtStart = evt._start.getTime();
 	var evtEnd = evt._end.getTime();
 	var layerName = evt._eventID;
+	var featureObj = evt._obj.featureID;
+	
 	
 	var temp = null;
 	map.getLayers().forEach(function(layer) {
@@ -205,11 +247,14 @@ function computeVisibility(begin, end, evt) {
     	}
     }); 
     
+    
     if (eventInsideBand(begin, end, evtStart, evtEnd) == true) {
-        temp.setVisible(true);
+    	featureObj.setStyle(null);
+        //temp.setVisible(true);
     }
     else{
-        temp.setVisible(false);
+    	featureObj.setStyle(new ol.style.Style({ image: '' }));
+        //temp.setVisible(false);
     }
 }
 

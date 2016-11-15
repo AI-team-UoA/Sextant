@@ -598,8 +598,8 @@ function showSpatialFilter(propURI, classURI) {
 	document.getElementById('spatialFilterPropertyURI').innerHTML = propURI;
 	
 	clearSpatialFilterForm();
-	enableCountries();
-	$('#modalSpatialFilter').modal('show');
+	//enableCountries();
+	loadMapSearchMapExplore();
 }
 
 function saveSpatialFilter() {
@@ -613,9 +613,21 @@ function saveSpatialFilter() {
 	
 	var filter;
 	
+	var filterValue = '<http://www.opengis.net/def/crs/EPSG/0/4326> POLYGON((null null, null null, null null, null null, null null))';
+	var filterPlace = 'No Name Available';
+	filterPlace = document.getElementById('exploreMapBingSearch').value;
+	if (vector.getSource().getFeatures().length > 0) {		
+		filterValue = mapExtentToWKTLiteral(ol.proj.transformExtent(vector.getSource().getExtent(), 'EPSG:3857', 'EPSG:4326'));			
+		
+		//Only for test
+		filterValue = mapExtentToWKTLiteralCRS84(ol.proj.transformExtent(vector.getSource().getExtent(), 'EPSG:3857', 'EPSG:4326'));			
+	}
+	
 	//Filter 1
 	var filterType = document.getElementById('spatialFilterType1').options[document.getElementById('spatialFilterType1').selectedIndex].value;
 	var filterRule = document.getElementById('spatialFilterRule1').options[document.getElementById('spatialFilterRule1').selectedIndex].value;
+	
+	/*
 	var filterValueCountry = document.getElementById('spatialFilterValue1').options[document.getElementById('spatialFilterValue1').selectedIndex].value;	
 	var filterValueRegion = document.getElementById('spatialFilterValue2').options[document.getElementById('spatialFilterValue2').selectedIndex].value;	
 	var filterValueRegionUnit = document.getElementById('spatialFilterValue3').options[document.getElementById('spatialFilterValue3').selectedIndex].value;	
@@ -623,9 +635,10 @@ function saveSpatialFilter() {
 	
 	var filterPlace = getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity);
 	var filterValue = getBBOX(filterPlace, 'wkt');
+	*/
 	
 	if (filterValue != '<http://www.opengis.net/def/crs/EPSG/0/4326> POLYGON((null null, null null, null null, null null, null null))') {
-		filter = new Filter(currentClassURI, currentPropURI, filterType, filterRule, filterValue, filterPlace.name);
+		filter = new Filter(currentClassURI, currentPropURI, filterType, filterRule, filterValue, filterPlace);
 		if (allClassFilters[position].filters.indexOf(filter) === -1) {
 			//Add the new filter if it does not exist in the table
 			allClassFilters[position].filters.push(filter);
@@ -646,6 +659,7 @@ function saveSpatialFilter() {
 function clearSpatialFilterForm() {
 	document.getElementById('spatialFilterType1').value = 'regular';
 	document.getElementById('spatialFilterRule1').value = 'spatial.intersect';
+	/*
 	$('#spatialFilterValue1').get(0).selectedIndex = 0;
 	$('#spatialFilterValue2').get(0).selectedIndex = 0;
 	$('#spatialFilterValue3').get(0).selectedIndex = 0;
@@ -653,6 +667,8 @@ function clearSpatialFilterForm() {
 	document.getElementById('spatialFilterValue2').disabled = true;
 	document.getElementById('spatialFilterValue3').disabled = true;
 	document.getElementById('spatialFilterValue4').disabled = true;
+	*/
+	resetSearchMapFormExplore();
 }
 
 function getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity) {	

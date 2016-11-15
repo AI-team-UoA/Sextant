@@ -155,7 +155,7 @@ function parseResults(results, status, jqXHR) {
 
   	hideSpinner();
     setTimeout(function() {$('#alertMsgServerWait').fadeOut('slow');}, fadeTime);
-    console.log(results);
+    //console.log(results);
     //Parse layers and charts
 	$('mapInfo', results).each(function(i) {
 		var name = $(this).find('name').text();

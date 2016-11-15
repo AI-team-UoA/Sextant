@@ -11,6 +11,16 @@
     <title>Sextant</title>
       
     <!-- Imported libs, WARNING!!! Do NOT change the order -->  
+    
+    <!-- Bing Maps auto-complete location service -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.5.1.js" type="text/javascript"></script>
+    <script>
+		var jq151 = jQuery.noConflict();
+	</script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/jquery-ui.js" type="text/javascript"></script>
+    <link href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="./assets/js/BingAutoComplete.js"></script>
+    
       
     <!-- Bootstrap core CSS/JS/jQuery/Moment -->   
     <script type="text/javascript" src="./assets/js/jquery-1.11.1.min.js"></script>
@@ -76,6 +86,7 @@
     <script type="text/javascript" src="./assets/js/GeoTIFF.js"></script>
     <script type="text/javascript" src="./assets/js/helpMapDrawArea.js"></script>
     <script type="text/javascript" src="./assets/js/OpenLayers.js"></script>
+    <script type="text/javascript" src="./assets/js/twitterSearch.js"></script>
     
     <!-- Dragdealer JS -->
     <script type="text/javascript" src="./assets/js/dragdealer.js"></script>
@@ -95,6 +106,8 @@
     <!-- Custom CSS -->
     <link href="./assets/css/signin.css" rel="stylesheet" />
     <link href="./assets/css/sextant.css" rel="stylesheet" />
+    
+    <script src="./assets/js/jquery.ajax-cross-origin.min.js"></script>
     
     <!-- End Of Imports --> 
      
@@ -173,7 +186,7 @@
                       <li class="divider"></li>
                       <li class="divider"></li>
                       <li class="dropdown-header"><b>MAP SEARCH</b></li>  
-                      <li class=""><a onClick="" data-toggle="modal" data-target="#modalMapSearch">Search Endpoint</a></li>  
+                      <li class=""><a onClick="loadMapSearchMap()" data-toggle="modal" data-target="#modalMapSearch">Search Endpoint</a></li>  
                     <!--   <li class="divider"></li>
                       <li class="dropdown-header"><b>GEOSS PORTAL</b></li>  
                       <li class=""><a href="#" onClick="resetGEOSS()" data-toggle="modal" data-target="#modalGEOSSPortalSearch">Search Datasets</a></li> 
@@ -936,8 +949,13 @@
 			          <input type="text" class="form-control" placeholder="Creator" id="mapSearchCreator" />
 			          <input type="text" class="form-control" placeholder="License" id="mapSearchLicense" />
 			          <input type="text" class="form-control" placeholder="Theme" id="mapSearchTheme" />
-			          <input type="button" id="drawExtentButton" class="btn btn-block btn-md btn-default" value="Draw Extent" onClick="initSearchMap()" style="margin-top: 10px; margin-bottom:10px"/>
-			          <div class="form-control" style="display: none;" id="searchMapExtentForm">
+			          
+			          <h4 class="form-signin-heading">Draw Extent</h4>	
+			          <div class="form-control" id="searchMapExtentForm">
+			          	<div class="ui-widget">
+					        <input type="text" id="searchBoxSearchMap" placeholder="Search Bing Maps"/>
+					    </div>
+					    
 			          	<div id="mapSearchExtent">			          		
 			          			<!-- Add map with javascript -->
 			          	</div>	
@@ -1014,7 +1032,8 @@
 		  </div>
 	  </div>  
 	  
-	  <!-- Pop up window with form to search GEOSS data portal -->
+	  
+	  <!-- Pop up window with form to search GEOSS data portal 
       <div class="modal fade" id="modalGEOSSPortalSearch" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		  <div class="modal-dialog">
 		    <div class="modal-content">
@@ -1094,7 +1113,7 @@
 			          <input type="button" id="drawExtentButtonGEOSS" class="btn btn-block btn-md btn-default" value="Draw Extent" onClick="initSearchMapGEOSS()" style="margin-top: 10px; margin-bottom:10px"/>
 			          <div class="form-control" style="display: none;" id="searchMapExtentFormGEOSS">
 			          	<div id="mapSearchExtentGEOSS">			          		
-			          			<!-- Add map with javascript -->
+			          			
 			          	</div>	
 			          	
 			          </div>			     
@@ -1110,8 +1129,8 @@
 		    </div>
 		  </div>
 	  </div>
-	  
-	  <!-- Pop up window with GEOSS search results -->
+	  -->
+	  <!-- Pop up window with GEOSS search results 
       <div class="modal fade" id="modalGEOSSPortalResults" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		  <div class="modal-dialog modal-lg">
 		    <div class="modal-content">
@@ -1140,6 +1159,7 @@
 		    </div>
 		  </div>
 	  </div>
+	  -->
 	  
 	  <!-- Pop up window with explore/discover results -->
       <div class="modal fade" id="modalDiscover" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -1686,24 +1706,38 @@
 			       	  			</select>
 		        			</div>		        			
 		        		</div>	
-		        				        		
+		        		
+		        		<!-- 		        		
 		        		<h5>Select Area of Interest</h4>
 		        		<select class="form-control" id="spatialFilterValue1" style="margin-bottom: 2px" onChange="enableRegionSelect()">
 			       	      	<option value="" disabled selected>Country</option>
-			       	      	<!-- Add all available countries -->			       	      	
+			       	      		       	      	
 			       	  	</select>
 			       	  	<select class="form-control" id="spatialFilterValue2" style="margin-bottom: 2px" onChange="enableRegionUnitSelect()" disabled>
 			       	  		<option value="" disabled selected>Region</option>
-			       	  		<!-- Add regions for the selected Country -->
+			       	  		
 			       	  	</select>
 			       	  	<select class="form-control" id="spatialFilterValue3" style="margin-bottom: 2px" onChange="enableCitySelect()" disabled>
 			       	  		<option value="" disabled selected>Region Unit</option>
-			       	  		<!-- Add region units for the selected region -->
+			       	  		
 			       	  	</select>
 			       	  	<select class="form-control" id="spatialFilterValue4" style="margin-bottom: 20px" disabled>
 			       	  		<option value="" disabled selected>City</option>
-			       	  		<!-- Add cities for the selected region unit -->
-			       	  	</select>	        		
+			       	  		
+			       	  	</select>	
+			       	  	-->
+			       	  	<h5 class="form-signin-heading" style="margin-top:25px">Draw Extent</h5>	
+			          	<div class="form-control" id="exploreMapExtentFormFilter" style="margin-bottom: 20px">
+			          		<div class="ui-widget">
+					        	<input type="text" id="exploreMapBingSearch" placeholder="Search Bing Maps"/>
+					    	</div>
+					    
+			          		<div id="mapExploreExtentFilter">			          		
+			          			<!-- Add map with javascript -->
+			          		</div>	
+			        
+			          	</div>
+			                  		
 		        	</div>
 		        </div>
 		        
@@ -1816,34 +1850,41 @@
 		      	<form class="form-signin" role="form" action="#" id="filterSearchForm" >	        
 		        	
 		        		<h4>Layer name: <b id="layerID"></b></h4>
-		        		<h5>Select Area of Interest</h5>
+		        		<!-- <h5>Select Area of Interest</h5>
 			            <h5><small>(You can choose one from the lists below, or draw an area on the map.)</small></h5>
 		        		<div>
 			        		<select class="form-control" id="layerSpatialFilterValue1" style="margin-bottom: 2px" onChange="enableRegionSelectLayer()">
 				       	      	<option value="" disabled selected>Country</option>
-				       	      	<!-- Add all available countries -->			       	      	
 				       	  	</select>
 				       	  	<select class="form-control" id="layerSpatialFilterValue2" style="margin-bottom: 2px" onChange="enableRegionUnitSelectLayer()" disabled>
 				       	  		<option value="" disabled selected>Region</option>
-				       	  		<!-- Add regions for the selected Country -->
 				       	  	</select>
 				       	  	<select class="form-control" id="layerSpatialFilterValue3" style="margin-bottom: 2px" onChange="enableCitySelectLayer()" disabled>
 				       	  		<option value="" disabled selected>Region Unit</option>
-				       	  		<!-- Add region units for the selected region -->
 				       	  	</select>
 				       	  	<select class="form-control" id="layerSpatialFilterValue4" style="margin-bottom: 20px" disabled>
 				       	  		<option value="" disabled selected>City</option>
-				       	  		<!-- Add cities for the selected region unit -->
 				       	  	</select>	        		
 		        		</div>
 		        		<input type="button" id="drawExtentButtonFilter" class="btn btn-block btn-md btn-default" value="Draw Extent" onClick="initSearchMapFilter()" style="margin-top: 10px; margin-bottom: 10px"/>
 				          <div class="form-control" style="display: none;" id="searchMapExtentFormFilter">
 				          	<div id="mapExtentFilter">			          		
-				          			<!-- Add map with javascript -->
 				          	</div>	
 				          	<div class="btn-group" id="searchFormGroupButtonsFilter" role="group" aria-label="...">
 				          	</div>
-				          </div>
+				          </div>-->
+				          
+				      <h4 class="form-signin-heading" style="margin-top:25px">Draw Extent</h4>	
+			          <div class="form-control" id="searchMapExtentFormFilter">
+			          	<div class="ui-widget">
+					        <input type="text" class="searchBox" placeholder="Search Bing Maps"/>
+					    </div>
+					    
+			          	<div id="mapExtentFilter">			          		
+			          			<!-- Add map with javascript -->
+			          	</div>	
+			        
+			          </div>
 		        
 			        <div class="leftButton">
 						<button type="button" class="btn btn-lg btn-info btn-block okBTNall" data-dismiss="modal" onClick="applySpatialFilterLayer()">Apply</button>    	
@@ -1996,6 +2037,11 @@
       </div>
       
       <div id="coordinates"></div>
+      
+      <div id="scrollTopPanel"><a title="Scroll to Top" onClick="scrollTopPanels()"><i class="fa fa-chevron-circle-up fa-3x"></i></a></div>
+      
+      <!-- Loading Indicator for Twitter -->
+	  <div id="loadingWheelTwitter"></div> 	
       
       <div id="tmContainer">
 	  	  <div id="timeline"></div>
@@ -2202,6 +2248,50 @@
 				  </div>
 			   </div>
 	       </div> 
+	       
+	       <!-- Twitter panel -->
+	      <div id="twitterHeader">
+		      <div class="page-header">
+		      	  <div class="row" style="margin-right:5px">
+		      	  	  <div id="twitterHeaderContainer" class="col-md-11 col-sm-11" data-toggle="collapse" data-target="#twitterPage" aria-expanded="false" aria-controls="twitterPage">
+		      	  	      <h4>Twitter</h4>
+		      	  	  </div>
+		      	  	  
+		      	  	  <div class="col-md-1 col-sm-1">
+		       	  	  	 <!--  <a title="Delete All Events" data-toggle="modal" data-target="#confirmDeleteAllEvents"><i class="fa fa-trash fa-2x"></i></a>		      
+				      -->
+				      </div>
+			          <div class="col-md-1 col-sm-1">
+		       	  	  	  <!-- <a onClick="showHelpPage('eventDetection.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>		      
+				     -->
+				      </div>
+				      
+		      	  </div>
+		      </div>		      
+		  </div>
+	       <div id="twitterPage" class="collapse">
+	      	  <div> 
+				  <div class="row">
+				  	<div class="col-md-9 col-sm-9">
+				    	<input type="text" class="form-control" placeholder="Keywords" id="twitterSearchKeys" >			       	  
+				    </div>
+				    <div class="col-md-1 col-sm-1">
+				    	<a onClick="searchTwitterRestLocation()" title="Search"><i class="fa fa-search fa-2x"></i></a>
+				    </div>
+				    <div class="col-md-1 col-sm-1">
+				    	<a title="Refresh" id="updateTwitterSearchBtn" onClick="searchTwitterRestUpdateLocation()" style="display: none"><i class="fa fa-refresh fa-2x"></i></a>
+				    </div>
+				    <div class="col-md-1 col-sm-1">
+				    	<!-- <a title="Delete All" id="updateTwitterSearchBtn" onClick="searchTwitterRestUpdate()"><i class="fa fa-trash fa-2x"></i></a>
+				    	-->
+				    </div>
+				  </div>				  
+			  </div>	      
+		      <div id="twitterInformationTable">                                                               
+			      <!-- Content is dynamically created with javascript when an event is detected -->	
+			  </div>
+
+	      </div>
 	      <!-- end of explore panel -->
 	     </div> <!-- end of sextant panels -->
       </div> <!-- end of sextant panels container -->
@@ -2244,6 +2334,24 @@
     		});
     		
     	});
+    </script>
+    <script>
+    	  window.twttr = (function(d, s, id) {
+		  var js, fjs = d.getElementsByTagName(s)[0],
+		    t = window.twttr || {};
+		  if (d.getElementById(id)) return t;
+		  js = d.createElement(s);
+		  js.id = id;
+		  js.src = "https://platform.twitter.com/widgets.js";
+		  fjs.parentNode.insertBefore(js, fjs);
+		
+		  t._e = [];
+		  t.ready = function(f) {
+		    t._e.push(f);
+		  };
+		
+		  return t;
+		}(document, "script", "twitter-wjs"));
     </script>
     
 </html>

@@ -40,7 +40,7 @@ body {
 	height: 28px;
 }
 
-#searchMapExtentForm, #searchMapExtentFormGEOSS, #searchMapExtentFormFilter {
+#searchMapExtentForm, #searchMapExtentFormGEOSS, #searchMapExtentFormFilter, #exploreMapExtentFormFilter {
 	height: 30%;
 }
 
@@ -82,7 +82,7 @@ body {
 	overflow-y: auto;
 }
 
-#explorePanel {
+#explorePanel, #twitterHeader {
 	cursor: hand;
 }
 
@@ -698,7 +698,7 @@ img.evtIcon {
         bottom: 12px;
         left: -200px;
         width: 400px;
-        height: 220px;
+        height: 300px;
 }
 .ol-popup:after, .ol-popup:before {
         top: 100%;
@@ -805,4 +805,54 @@ img.evtIcon {
 
 .ol-scale-line {
 	left: 20px;
+}
+
+#searchBoxSearchMap, .searchBox, #exploreMapBingSearch {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	width: 250px;
+	margin: auto;
+	z-index: 9000000;
+	padding-left: 10px;
+	color:white;
+	
+	border-radius: 5px 5px 5px 5px;
+    
+    border-style: solid;
+    border-width: 2px;
+    border-color: lightgrey;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+#exploreMapBingSearch {
+	position: absolute;
+	top: 220px;
+	right: 105px;
+	width: 250px;
+	margin: auto;
+	z-index: 9000000;
+	padding-left: 10px;
+	color:white;
+	
+	border-radius: 5px 5px 5px 5px;
+    
+    border-style: solid;
+    border-width: 2px;
+    border-color: lightgrey;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+#scrollTopPanel {
+	position: absolute;
+	bottom: 80px;
+	right: 2%;
+	display: none;
+	z-index: 9999999;	
+}
+
+#loadingWheelTwitter {
+	position: absolute;
+	top: 70%;
+	right: 20%;
 }

@@ -61,14 +61,18 @@ function addWMSLayer(name, url, layersWMS, type, styleId, bbox, isTemp, timeStam
      	     		      'TILED': true,
      	     		      'VERSION': type[1],
      	     		      'STYLES': styleId,
-     	     		      'TIME': timeStamp};
+     	     		      'TIME': timeStamp,
+     	     		      'FORMAT': 'image/png'};
 		}
 		else {
 			parameters = {'LAYERS': layersWMS,
            	     		  'TILED': true,
            	     		  'VERSION': type[1],
-           	     		  'STYLES': styleId};
+           	     		  'STYLES': styleId,
+           	     		  'FORMAT': 'image/png'};
 		}
+		console.log(url);
+		console.log(parameters);
 		var layer = new ol.layer.Tile({
 			  title: name,
 	          extent: [-20026376.39, -20048966.10, 20026376.39, 20048966.10],
@@ -102,6 +106,7 @@ function getWMSList() {
         type: 'GET',
         url: url + '?request=GetCapabilities&version='+serverVersion+'&service=WMS',              
         timeout: ajaxTimeout,
+        crossOrigin: true,
         success: parseWMSResults,
         error: printError
     });	
@@ -110,19 +115,20 @@ function getWMSList() {
 function parseWMSResults(results, status, jqXHR) {
 	document.getElementById('WMSLayerList').innerHTML = '';
 	tempWMS = [];
+
 	$('Layer', results).each(function(i) {		
 		if (i > 0) {	
-			var name = $(this).find('Name').text();
-			var title = $(this).find('Title').text();
-			var info = $(this).find('Abstract').text();
-			var style = $(this).find('Style');
+			var name = $(this).children('Name').text();
+			var title = $(this).children('Title').text();
+			var info = $(this).children('Abstract').text();
+			var style = $(this).children('Style');
 
 			var layerStyles = [];
 			$.each(style, function(key, value) {
-				var style = new styleWMS($(value).find('Name').text(),
-										 $(value).find('Title').text(),
-										 $(value).find('Abstract').text(),
-										 $(value).find('OnlineResource').attr('xlink:href'));
+				var style = new styleWMS($(value).children('Name').text(),
+										 $(value).children('Title').text(),
+										 $(value).children('Abstract').text(),
+										 $(value).children('OnlineResource').attr('xlink:href'));
 				layerStyles.push(style);
 			});
 			
@@ -167,7 +173,8 @@ function updateWMSname() {
 function cloneWMSList(url, name, id, styleId, type, isTemp) {	
 	$.ajax({
         type: 'GET',
-        url: url + '?request=GetCapabilities&version='+type[1]+'&service=WMS',              
+        url: url + '?request=GetCapabilities&version='+type[1]+'&service=WMS',   
+        crossOrigin: true,
         timeout: ajaxTimeout,
         success: parseClonedWMSResults,
         error: printError,
@@ -188,11 +195,11 @@ function parseClonedWMSResults(results, status, jqXHR) {
 	var layerName = this.layerId;
 	$('Layer', results).each(function(i) {		
 		if (i > 0) {				
-			var name = $(this).find('Name').text();
+			var name = $(this).children('Name').text();
 			
 			if (name == layerName) {
 				//We get the data only for the selected layer
-				var style = $(this).find('Style');
+				var style = $(this).children('Style');
 				
 				var bboxWMS = null;
 				
@@ -205,7 +212,7 @@ function parseClonedWMSResults(results, status, jqXHR) {
 				var oldExtantList = [];
 				
 				if (version == '1.1.0') {
-					bboxWMS = $(this).find('LatLonBoundingBox');
+					bboxWMS = $(this).children('LatLonBoundingBox');
 					oldExtent = new OpenLayers.Bounds(Number($(bboxWMS).attr('minx')).toFixed(5),
 													  Number($(bboxWMS).attr('miny')).toFixed(5), 
 													  Number($(bboxWMS).attr('maxx')).toFixed(5), 
@@ -224,11 +231,11 @@ function parseClonedWMSResults(results, status, jqXHR) {
 					extent3857 = ol.proj.transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
 				}
 				else if (version == '1.3.0') {
-					bboxWMS = $(this).find('EX_GeographicBoundingBox'); 
-					oldExtent = new OpenLayers.Bounds(Number($(bboxWMS).find('westBoundLongitude').text()).toFixed(5),
-													  Number($(bboxWMS).find('southBoundLatitude').text()).toFixed(5),
-													  Number($(bboxWMS).find('eastBoundLongitude').text()).toFixed(5),
-													  Number($(bboxWMS).find('northBoundLatitude').text()).toFixed(5)).transform(new OpenLayers.Projection('EPSG:4326'), new OpenLayers.Projection('EPSG:3857'));
+					bboxWMS = $(this).children('EX_GeographicBoundingBox'); 
+					oldExtent = new OpenLayers.Bounds(Number($(bboxWMS).children('westBoundLongitude').text()).toFixed(5),
+													  Number($(bboxWMS).children('southBoundLatitude').text()).toFixed(5),
+													  Number($(bboxWMS).children('eastBoundLongitude').text()).toFixed(5),
+													  Number($(bboxWMS).children('northBoundLatitude').text()).toFixed(5)).transform(new OpenLayers.Projection('EPSG:4326'), new OpenLayers.Projection('EPSG:3857'));
 					oldExtantList = [Number(oldExtent.left).toFixed(5), 
 					                 Number(oldExtent.bottom).toFixed(5), 
 					                 Number(oldExtent.right).toFixed(5), 
@@ -236,20 +243,20 @@ function parseClonedWMSResults(results, status, jqXHR) {
 					
 					//Use OL3 for the extent transformation
 					//TODO: ol.proj.transformExtent produces NaN values in OL3 v3.14.2
-					extent = [Number($(bboxWMS).find('westBoundLongitude').text()).toFixed(5), 
-					          Number($(bboxWMS).find('southBoundLatitude').text()).toFixed(5), 
-					          Number($(bboxWMS).find('eastBoundLongitude').text()).toFixed(5), 
-					          Number($(bboxWMS).find('northBoundLatitude').text()).toFixed(5)];
+					extent = [Number($(bboxWMS).children('westBoundLongitude').text()).toFixed(5), 
+					          Number($(bboxWMS).children('southBoundLatitude').text()).toFixed(5), 
+					          Number($(bboxWMS).children('eastBoundLongitude').text()).toFixed(5), 
+					          Number($(bboxWMS).children('northBoundLatitude').text()).toFixed(5)];
 					extent3857 = ol.proj.transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
 				}
 
 				
 				var layerStyles = [];
 				$.each(style, function(key, value) {
-					var style = new styleWMS($(value).find('Name').text(),
-											 $(value).find('Title').text(),
-											 $(value).find('Abstract').text(),
-											 $(value).find('OnlineResource').attr('xlink:href'));
+					var style = new styleWMS($(value).children('Name').text(),
+											 $(value).children('Title').text(),
+											 $(value).children('Abstract').text(),
+											 $(value).children('OnlineResource').attr('xlink:href'));
 					layerStyles.push(style);
 				});
 							

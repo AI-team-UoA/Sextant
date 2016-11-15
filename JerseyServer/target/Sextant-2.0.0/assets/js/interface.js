@@ -232,6 +232,11 @@ function mapExtentToWKTLiteral(bbox) {
 	return polygon;
 }
 
+function mapExtentToWKTLiteralCRS84(bbox) {
+	var polygon = createPolygonCRS84(bbox);
+	return polygon;
+}
+
 /**
  * Create a polygon string from the OpenLayers.Bounds object
  * @param bbox
@@ -241,6 +246,21 @@ function createPolygon(bbox) {
 	var bottom = Number(bbox[1]);
 	var right = Number(bbox[2]);
 	var top = Number(bbox[3]);
+	
+	var polygon = 'POLYGON(('+bottom+' '+right+', '+
+							  bottom+' '+left+', '+
+							  top+' '+left+', '+
+							  top+' '+right+', '+
+							  bottom+' '+right+'))';
+	
+	return polygon;
+}
+
+function createPolygonCRS84(bbox) {
+	var left = Number(bbox[1]);
+	var bottom = Number(bbox[0]);
+	var right = Number(bbox[3]);
+	var top = Number(bbox[2]);
 	
 	var polygon = 'POLYGON(('+bottom+' '+right+', '+
 							  bottom+' '+left+', '+

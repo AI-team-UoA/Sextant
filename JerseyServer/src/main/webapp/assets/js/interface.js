@@ -172,6 +172,33 @@ function hideSpinnerDescribe(){
     $('.spinner').hide();
 }
 
+function showSpinnerTwitter(colorID)
+{
+	colorID = '#26a69a';
+	window.scrollTo(0,0);
+    var opts = {
+              lines: 15, // The number of lines to draw
+              length: 10, // The length of each line
+              width: 5, // The line thickness
+              radius: 20, // The radius of the inner circle
+              rotate: 0, // The rotation offset
+              color: colorID, // #rgb or #rrggbb
+              speed: 1, // Rounds per second
+              trail: 60, // Afterglow percentage
+              shadow: false, // Whether to render a shadow
+              hwaccel: false, // Whether to use hardware acceleration
+              className: 'spinnerTwitter', // The CSS class to assign to the spinner
+              zIndex: 1030, // The z-index (defaults to 2000000000)
+              top: 0, // Top position relative to parent in px
+              left: 0 // Left position relative to parent in px
+            };
+            var spinner = new Spinner(opts).spin();
+            $("#loadingWheelTwitter").append(spinner.el);
+}
+function hideSpinnerTwitter(){     
+    $('.spinnerTwitter').hide();
+}
+
 /**
  * Set new server URL
  */
@@ -232,6 +259,11 @@ function mapExtentToWKTLiteral(bbox) {
 	return polygon;
 }
 
+function mapExtentToWKTLiteralCRS84(bbox) {
+	var polygon = createPolygonCRS84(bbox);
+	return polygon;
+}
+
 /**
  * Create a polygon string from the OpenLayers.Bounds object
  * @param bbox
@@ -241,6 +273,21 @@ function createPolygon(bbox) {
 	var bottom = Number(bbox[1]);
 	var right = Number(bbox[2]);
 	var top = Number(bbox[3]);
+	
+	var polygon = 'POLYGON(('+bottom+' '+right+', '+
+							  bottom+' '+left+', '+
+							  top+' '+left+', '+
+							  top+' '+right+', '+
+							  bottom+' '+right+'))';
+	
+	return polygon;
+}
+
+function createPolygonCRS84(bbox) {
+	var left = Number(bbox[1]);
+	var bottom = Number(bbox[0]);
+	var right = Number(bbox[3]);
+	var top = Number(bbox[2]);
 	
 	var polygon = 'POLYGON(('+bottom+' '+right+', '+
 							  bottom+' '+left+', '+
@@ -261,6 +308,7 @@ function animateLegendPanel() {
 		document.getElementById('animatePanelButton').title = 'Show Panel';
 		$("#legendPanel").animate({right: -($("#legendPanel").width())}, 500);		
 		animateLegend = 1;
+		document.getElementById('scrollTopPanel').style.display = 'none';
 	}
 	else {
 		/*
@@ -271,6 +319,7 @@ function animateLegendPanel() {
 		document.getElementById('animatePanelButton').title = 'Hide Panel';
 		$("#legendPanel").animate({right: 0}, 500);				
 		animateLegend = 0;
+		document.getElementById('scrollTopPanel').style.display = 'block';
 	}
 }
 

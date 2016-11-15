@@ -1,13 +1,21 @@
+function loadMapFilterLayer() {
+	$('#modalSpatialFilterLayer').on('shown.bs.modal', function () {
+		resetFilterMapForm();
+		initSearchMapFilter();
+	});
+}
+
 function initSearchMapFilter() {
-	document.getElementById('searchMapExtentFormFilter').style.display = 'block';
-	document.getElementById('drawExtentButtonFilter').disabled = true;	
+	//document.getElementById('searchMapExtentFormFilter').style.display = 'block';
+	//document.getElementById('drawExtentButtonFilter').disabled = true;	
 		
 	//Initialize map
+	var currentView = map.getView().getCenter();
 	mapFilter = new ol.Map({
-        layers: [base, vector],
+        layers: [bingAerialLabels, vector],
         target: 'mapExtentFilter',
         view: new ol.View({
-          center: center,
+          center: currentView,
           zoom: 6
         })
     });
@@ -25,8 +33,8 @@ function resetFilterMapForm() {
 		divRef.removeChild(divRef.firstChild);
 	}	
 	
-	document.getElementById('searchMapExtentFormFilter').style.display = 'none';
-	document.getElementById('drawExtentButtonFilter').disabled = false;
+	//document.getElementById('searchMapExtentFormFilter').style.display = 'none';
+	//document.getElementById('drawExtentButtonFilter').disabled = false;
 	
 	document.getElementById('filterSearchForm').reset();
 	
@@ -35,26 +43,28 @@ function resetFilterMapForm() {
 //////////////////////////
 function setFilters(name) {
 	document.getElementById('layerID').innerHTML = name;
-	enableCountriesLayer();	
+	//enableCountriesLayer();	
+	
+	loadMapFilterLayer();
 	$('#modalSpatialFilterLayer').modal('show');
 }
 
 function applySpatialFilterLayer() {
 	var name = document.getElementById('layerID').innerHTML;
-	var filterValueCountry = document.getElementById('layerSpatialFilterValue1').options[document.getElementById('layerSpatialFilterValue1').selectedIndex].value;	
-	var filterValueRegion = document.getElementById('layerSpatialFilterValue2').options[document.getElementById('layerSpatialFilterValue2').selectedIndex].value;	
-	var filterValueRegionUnit = document.getElementById('layerSpatialFilterValue3').options[document.getElementById('layerSpatialFilterValue3').selectedIndex].value;	
-	var filterValueCity = document.getElementById('layerSpatialFilterValue4').options[document.getElementById('layerSpatialFilterValue4').selectedIndex].value;	
+	//var filterValueCountry = document.getElementById('layerSpatialFilterValue1').options[document.getElementById('layerSpatialFilterValue1').selectedIndex].value;	
+	//var filterValueRegion = document.getElementById('layerSpatialFilterValue2').options[document.getElementById('layerSpatialFilterValue2').selectedIndex].value;	
+	//var filterValueRegionUnit = document.getElementById('layerSpatialFilterValue3').options[document.getElementById('layerSpatialFilterValue3').selectedIndex].value;	
+	//var filterValueCity = document.getElementById('layerSpatialFilterValue4').options[document.getElementById('layerSpatialFilterValue4').selectedIndex].value;	
 	
 	var extent = 'null';
-	var filterPlace = getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity);
+	/*var filterPlace = getPlace(filterValueCountry, filterValueRegion, filterValueRegionUnit, filterValueCity);
 	var filterValue = getBBOX(filterPlace, 'bbox');
 	
 	if (filterValue != null) {
 		extent = filterValue;
 		extent = ol.proj.transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
-	}
-	else if(vector.getSource().getFeatures().length > 0) {			
+	}*/
+	if(vector.getSource().getFeatures().length > 0) {			
 		extent = vector.getSource().getExtent();					
 	}
 	

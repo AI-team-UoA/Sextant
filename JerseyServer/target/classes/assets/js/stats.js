@@ -18,16 +18,38 @@ function drawAttrChart() {
     		selectedLayer = layer;
     	}
     });
+	
+	var layerPosition = null;
+	for (var i=0; i<mapLayers.length; i++) {
+        if (mapLayers[i].name == layerName) {
+        	layerPosition = i;
+        }
+    }
+	
 	dataChart = [];
 	var layerFeatures = selectedLayer.getSource().getSource().getFeatures();
 	
 	for (var i=0; i<layerFeatures.length; i++) {
-		for (var key in layerFeatures[i].getProperties()) {
-			if (key == attrName) {
-				dataChart.push(new statData(layerFeatures[i], Number(layerFeatures[i].getProperties()[key])));
-				break;
+		//Non-temporal layers
+		if (!mapLayers[layerPosition].isTemp) {
+			for (var key in layerFeatures[i].getProperties()) {
+				if (key == attrName) {
+					dataChart.push(new statData(layerFeatures[i], Number(layerFeatures[i].getProperties()[key])));
+					break;
+				}
 			}
-		}			
+		}
+		else {
+			//Temporal layers
+			if (layerFeatures[i].getStyle() == null) {
+				for (var key in layerFeatures[i].getProperties()) {
+					if (key == attrName) {
+						dataChart.push(new statData(layerFeatures[i], Number(layerFeatures[i].getProperties()[key])));
+						break;
+					}
+				}	
+			}
+		}
 	}
 	
 	//Create drag button if needed
@@ -206,7 +228,9 @@ function updateAttrStatsSelect() {
 	for (var i=0; i<layerFeatures.length; i++) {
 		for (var key in layerFeatures[i].getProperties()) {
 			var attrFound = false;
-			if (key != 'name' && !isNaN(layerFeatures[i].getProperties()[key])) {
+			//console.log(key + ': ' + layerFeatures[i].getProperties()[key]);
+			//var testDate = new Date(layerFeatures[i].getProperties()[key]);
+			if  (key != 'name' && !isNaN(layerFeatures[i].getProperties()[key]) ) {
 				for (var j=0; j<selectDivAttr.length; j++) {
 					if (selectDivAttr.options[j].value == key) {
 						attrFound = true;
@@ -226,7 +250,7 @@ function updateAttrStatsSelect() {
 	
 	document.getElementById('downloadStatChart').disabled = true;
 	
-	map.getView().fit(selectedLayer.getSource().getSource().getExtent(), map.getSize());
+	//map.getView().fit(selectedLayer.getSource().getSource().getExtent(), map.getSize());
 }
 
 function resetStatsInfo(label) {

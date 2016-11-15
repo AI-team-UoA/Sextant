@@ -113,6 +113,21 @@ var defaultVectorStyle = new ol.style.Style({
       });
  */
 
+var defaultTwitterStyle = new ol.style.Style({
+	stroke: new ol.style.Stroke({
+        color: [255, 153, 0, 1],
+        width: 1
+    }),
+    fill: new ol.style.Fill({
+        color: [255, 153, 0, 0.4]
+    }),
+    image: new ol.style.Icon({
+    	src: "./assets/images/Twitterbird.png",
+    	scale: 0.1,
+    	crossOrigin: 'anonymous'
+    })
+});
+
 /**
  * Style features when we click them on the map
  */
@@ -213,6 +228,10 @@ function initMap(results, status, jqXHR) {
  * (called on Window load)
  */
 function initialize() {
+	loadBingsSearchLoadMap();
+	loadBingsSearchFilterLayer();
+	loadBingsSearchExtentFilter();
+	
 	if (!map){
 		document.getElementById('tmContainer').style.right = '-3000px';
 		document.getElementById('statsContainer').style.right = '-3000px';
@@ -354,11 +373,23 @@ function initialize() {
 	        featureOverlay.getSource().getSource().addFeature(overlayFeature);
 	        
 	        for (var key in features[0].getProperties()) {
-	    		if (key != 'description' && key != 'geometry' && key != 'name') {
+	    		if (key != 'description' && key != 'geometry' && key != 'name' && key != 'objectType') {
 	    			content.innerHTML += '<tr><td><b>'+key+'</b></td><td>'+features[0].getProperties()[key]+'</td></tr>';
 	    		}
 	    		if (key == 'name') {
 	    			document.getElementById('popupTitle').innerHTML = features[0].getProperties()[key];
+	    		}
+	    		
+	    		if (key == 'objectType' && features[0].getProperties()[key] == 'twitt') {
+	    			document.getElementById('popup-content').innerHTML = "";
+	    			var element = document.createElement("div");
+	    			element.id='popupTwitter'+features[0].getProperties()['description'];
+	    			document.getElementById('popup-content').appendChild(element);
+	    			
+	    			twttr.widgets.createTweet(
+	    					features[0].getProperties()['description'],
+	    		    		document.getElementById('popupTwitter'+features[0].getProperties()['description'])
+	    		    );
 	    		}
 	    	}
 	        	        	        
@@ -461,8 +492,7 @@ function initialize() {
 		                
 	    });
 	    		
-		initTimeline();
-	    	 	    			              
+		initTimeline();		              
 	}
 	
 	//Parse host to determine if the client is bind to a server or stand-alone
@@ -490,6 +520,45 @@ function initialize() {
     
     document.getElementsByClassName('timeline-band-0')[0].style.backgroundColor = 'rgba(255,255,255,0)';
     document.getElementsByClassName('timeline-band-1')[0].style.backgroundColor = 'rgba(255,255,255,0)';
+    
+    document.getElementById('sextantPanels').addEventListener(
+		    'scroll',
+		    function() {
+		        var scrollTop = document.getElementById('sextantPanels').scrollTop;
+		        var scrollHeight = document.getElementById('sextantPanels').scrollHeight; 
+		        var offsetHeight = document.getElementById('sextantPanels').offsetHeight;
+		        var contentHeight = scrollHeight - offsetHeight;
+		        
+		        if (scrollTop > 300) {
+		        	document.getElementById('scrollTopPanel').style.display = 'block';		      
+		        	
+		        }
+		        else {
+		        	document.getElementById('scrollTopPanel').style.display = 'none';
+		        }
+		        
+		        if ((contentHeight*0.9) <= scrollTop)
+		        {		        		      	
+		        	var keys = document.getElementById('twitterSearchKeys').value;
+		        	if (keys != ''){
+		        		showSpinnerTwitter(colorSpin);
+		        		$.ajax({
+			                type: 'GET',
+			                url: rootURL + '/findTwittsRest?keys='+encodeURIComponent(keys)+'&sinceId='+sinceId+'&maxId='+maxId+'&update=false',
+			                headers: {
+			                	//'Accept-Charset' : 'utf-8',
+			                	'Content-Type'   : 'text/plain; charset=utf-8',
+			                },
+			                timeout: 0,
+			                success: parseTwitterSearchResults,
+			                error: printError
+			            });
+		        	}
+		        }
+		    },
+		    false
+	);
+    
 }
 
 function clearOverlayFeatures() {
