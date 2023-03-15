@@ -99,14 +99,14 @@ import server.MapEndpointStore;
 import server.MapMemoryStore;
 import server.MapVocabulary;
 import server.ServerConfiguration;
-import twitter4j.GeoLocation;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.conf.ConfigurationBuilder;
+// import twitter4j.GeoLocation;
+// import twitter4j.Query;
+// import twitter4j.QueryResult;
+// import twitter4j.Status;
+// import twitter4j.Twitter;
+// import twitter4j.TwitterException;
+// import twitter4j.TwitterFactory;
+// import twitter4j.conf.ConfigurationBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
@@ -134,7 +134,7 @@ public class RestServiceImpl {
 	private static final String KML_FILE_EXT			= ".kml";
 	private static final String GML_FILE_EXT			= ".gml";
 
-	private static final String HTTP					= "http://";
+	private String HTTP					= "http://";
 	
 	private static final String STORE_KMLFOLDER			= ServerConfiguration.getString("STORE_KMLFOLDER");
 	private static final String MAPONTOLOGYFOLDER		= ServerConfiguration.getString("MAP_ONTOLOGY_FOLDER");
@@ -169,8 +169,8 @@ public class RestServiceImpl {
 	 */
 	private static String webappName;
 	
-	private ConfigurationBuilder cb = new ConfigurationBuilder();
-	private Twitter twitter;
+	// private ConfigurationBuilder cb = new ConfigurationBuilder();
+	// private Twitter twitter;
 	/****************************************************************************************************/
 	
 	@Context
@@ -182,29 +182,34 @@ public class RestServiceImpl {
 	@PostConstruct
 	public void init() {
 		// get the context of the servlet   
-        webappName = context.getServletContextName() + context.getContextPath() + "/";
-        if (!webappName.startsWith("/")) {
-        	webappName = "/" + webappName;
-        }
+    webappName = context.getServletContextName() + context.getContextPath() + "/";
+    if (!webappName.startsWith("/")) {
+      webappName = "/" + webappName;
+    }
+    
+		//Check for HTTPS
+		if (servlet.isSecure()) {
+			HTTP = "https://";
+		}
+
+    //Layers' URLs format
+    //HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath()             
         
-        //Layers' URLs format
-        //HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath()             
+    //System.out.println("********* servlet.getServerName(): "+servlet.getServerName());
+    //System.out.println("********* servlet.getServerPort(): "+servlet.getServerPort());
         
-        //System.out.println("********* servlet.getServerName(): "+servlet.getServerName());
-        //System.out.println("********* servlet.getServerPort(): "+servlet.getServerPort());
+    //System.out.println("********* servlet.getRemoteHost(): "+servlet.getRemoteHost());
+    //System.out.println("********* servlet.getRemotePort(): "+servlet.getRemotePort());
         
-        //System.out.println("********* servlet.getRemoteHost(): "+servlet.getRemoteHost());
-        //System.out.println("********* servlet.getRemotePort(): "+servlet.getRemotePort());
+    //System.out.println("********* context.getContextPath(): "+context.getContextPath());
         
-        //System.out.println("********* context.getContextPath(): "+context.getContextPath());
-        
-        cb.setDebugEnabled(true)
-		  .setOAuthConsumerKey(CONSUMER_KEY)
-		  .setOAuthConsumerSecret(CONSUMER_SECRET)
-		  .setOAuthAccessToken(ACCESS_TOKEN)
-		  .setOAuthAccessTokenSecret(ACCESS_TOKEN_SECRET);
+      //   cb.setDebugEnabled(true)
+		  // .setOAuthConsumerKey(CONSUMER_KEY)
+		  // .setOAuthConsumerSecret(CONSUMER_SECRET)
+		  // .setOAuthAccessToken(ACCESS_TOKEN)
+		  // .setOAuthAccessTokenSecret(ACCESS_TOKEN_SECRET);
 			
-		twitter = new TwitterFactory(cb.build()).getInstance();
+		//twitter = new TwitterFactory(cb.build()).getInstance();
 	}
 	
 	@POST 
@@ -510,9 +515,9 @@ public class RestServiceImpl {
 		String results = null;
 
 		try {
-			//System.out.println("*** Query: " + query);
+			System.out.println("*** Query: " + query);
 			//System.out.println("*** LayerName: " + name);
-			//System.out.println("*** Host: " + host);
+			System.out.println("*** Host: " + host);
 			//System.out.println("*** Port: " + port);
 			//System.out.println("*** EndpointName: " + endpointName.replaceAll("@@@", "/"));
 			kmlFile = passQuery(query, name, host, port, endpointName.replaceAll("@@@", "/"));
@@ -530,7 +535,7 @@ public class RestServiceImpl {
 		results = results.concat("$").concat(host);
 		results = results.concat("$").concat(endpointName.replaceAll("@@@", "/"));
 		results = results.concat("$").concat(tempLayer);
-				
+
 		return results;
 	}
 	
@@ -721,12 +726,12 @@ public class RestServiceImpl {
 		Vector<String> results = new Vector<String>();
 		String format = "";
 		results = endpointStore.getExploreClasses(host, endpoint.replaceAll("@@@", "/"), port);
-		
+		System.out.println("Returned------");
 		for(int i=0; i<results.size(); i++) {
 			format = format.concat(results.get(i));
 			format = format.concat("$");
 		}
-
+		System.out.println("Ending------");
 		return format;		
 	}
 	
@@ -991,81 +996,81 @@ public class RestServiceImpl {
 		}
 	}
 	
-	@GET
-	@Path("/findTwittsRest")
-	@Produces({MediaType.TEXT_PLAIN})
-    public String twitterSearchRest(@QueryParam("keys") String searchKeys, 
-    								@QueryParam("sinceId") long sinceId,
-    								@QueryParam("maxId") long maxId,
-    								@QueryParam("update") boolean update,
-    								@QueryParam("location") String location) {
+	// @GET
+	// @Path("/findTwittsRest")
+	// @Produces({MediaType.TEXT_PLAIN})
+  //   public String twitterSearchRest(@QueryParam("keys") String searchKeys, 
+  //   								@QueryParam("sinceId") long sinceId,
+  //   								@QueryParam("maxId") long maxId,
+  //   								@QueryParam("update") boolean update,
+  //   								@QueryParam("location") String location) {
 		
-		final Vector<String> results = new Vector<String>();  
-		String output = "";
-		long higherStatusId = Long.MIN_VALUE;
-		long lowerStatusId = Long.MAX_VALUE;
+	// 	final Vector<String> results = new Vector<String>();  
+	// 	String output = "";
+	// 	long higherStatusId = Long.MIN_VALUE;
+	// 	long lowerStatusId = Long.MAX_VALUE;
 		
-        Query searchQuery = new Query(searchKeys);
-        searchQuery.setCount(50);
-        searchQuery.setResultType(Query.ResultType.recent);
+  //       Query searchQuery = new Query(searchKeys);
+  //       searchQuery.setCount(50);
+  //       searchQuery.setResultType(Query.ResultType.recent);
         
-        if (sinceId != 0) {
-        	if (update) {
-            	searchQuery.setSinceId(sinceId);
-        	}
-        	higherStatusId = sinceId;
-        }
-        if (maxId != 0) {
-        	if (!update) {
-            	searchQuery.setMaxId(maxId); 
-        	}
-        	lowerStatusId = maxId;
-        }  
-        if (location != null) {
-        	double lat = Double.parseDouble(location.substring(0, location.indexOf(",")));
-        	double lon = Double.parseDouble(location.substring(location.indexOf(",")+1, location.length()));
+  //       if (sinceId != 0) {
+  //       	if (update) {
+  //           	searchQuery.setSinceId(sinceId);
+  //       	}
+  //       	higherStatusId = sinceId;
+  //       }
+  //       if (maxId != 0) {
+  //       	if (!update) {
+  //           	searchQuery.setMaxId(maxId); 
+  //       	}
+  //       	lowerStatusId = maxId;
+  //       }  
+  //       if (location != null) {
+  //       	double lat = Double.parseDouble(location.substring(0, location.indexOf(",")));
+  //       	double lon = Double.parseDouble(location.substring(location.indexOf(",")+1, location.length()));
         	
-        	searchQuery.setGeoCode(new GeoLocation(lat, lon), 10, Query.KILOMETERS);
-        }
+  //       	searchQuery.setGeoCode(new GeoLocation(lat, lon), 10, Query.KILOMETERS);
+  //       }
          
-        try {
-        	QueryResult qResult = twitter.search(searchQuery);
+  //       try {
+  //       	QueryResult qResult = twitter.search(searchQuery);
         	
-			for (Status status : qResult.getTweets()) {
-		        //System.out.println(Long.toString(status.getId())+"  ***  "+Long.toString(status.getUser().getId())+"  ***  "+status.isRetweet()+"  ***  "+status.isRetweeted());
+	// 		for (Status status : qResult.getTweets()) {
+	// 	        //System.out.println(Long.toString(status.getId())+"  ***  "+Long.toString(status.getUser().getId())+"  ***  "+status.isRetweet()+"  ***  "+status.isRetweeted());
 		        
-		        higherStatusId = Math.max(status.getId(), higherStatusId);
-		        lowerStatusId = Math.min(status.getId(), lowerStatusId);
+	// 	        higherStatusId = Math.max(status.getId(), higherStatusId);
+	// 	        lowerStatusId = Math.min(status.getId(), lowerStatusId);
 		        
-		        if (!status.isRetweet()) {
-		        	if (status.getGeoLocation() != null) {
-		        		System.out.println(Long.toString(status.getId())+"@"+Double.toString(status.getGeoLocation().getLatitude())+","+Double.toString(status.getGeoLocation().getLongitude()));		        				        		
-		        		results.add(Long.toString(status.getId())+
-		        					"@"+Double.toString(status.getGeoLocation().getLatitude())+
-		        					","+Double.toString(status.getGeoLocation().getLongitude()));
-		        	}
-		        	else {
-		        		results.add(Long.toString(status.getId())+"@null");
-		        	}
-		        }
-		    }
+	// 	        if (!status.isRetweet()) {
+	// 	        	if (status.getGeoLocation() != null) {
+	// 	        		System.out.println(Long.toString(status.getId())+"@"+Double.toString(status.getGeoLocation().getLatitude())+","+Double.toString(status.getGeoLocation().getLongitude()));		        				        		
+	// 	        		results.add(Long.toString(status.getId())+
+	// 	        					"@"+Double.toString(status.getGeoLocation().getLatitude())+
+	// 	        					","+Double.toString(status.getGeoLocation().getLongitude()));
+	// 	        	}
+	// 	        	else {
+	// 	        		results.add(Long.toString(status.getId())+"@null");
+	// 	        	}
+	// 	        }
+	// 	    }
 			
-		} catch (TwitterException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+	// 	} catch (TwitterException e1) {
+	// 		// TODO Auto-generated catch block
+	// 		e1.printStackTrace();
+	// 	}
         
-        TwitterResults resultsObj = new TwitterResults(results.toString(), higherStatusId, lowerStatusId);
-        ObjectMapper mapper = new ObjectMapper();
-		try {
-			output = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(resultsObj);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+  //       TwitterResults resultsObj = new TwitterResults(results.toString(), higherStatusId, lowerStatusId);
+  //       ObjectMapper mapper = new ObjectMapper();
+	// 	try {
+	// 		output = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(resultsObj);
+	// 	} catch (JsonProcessingException e) {
+	// 		// TODO Auto-generated catch block
+	// 		e.printStackTrace();
+	// 	}
         
-        return output;		
-	}
+  //       return output;		
+	// }
 	
 	@GET
 	@Path("/bingKey")
@@ -1355,11 +1360,14 @@ public class RestServiceImpl {
 	public String passQuery(String query, String layerName, String hostname, int port, String strabonendpoint) {
 		String fileURI = null;
 		String filename = "";
-		
 		try {
+			System.out.println(hostname);
+			System.out.println(port);
+			System.out.println(strabonendpoint);
 			GeneralSpatialEndpoint endpoint = new GeneralSpatialEndpoint(hostname, port, strabonendpoint);
 			EndpointResult response = endpoint.queryForKML(query, hostname);
 			if (response.getStatusCode() != 200) {
+				System.out.println("Failed : HTTP error code : " + response.getStatusCode() + " " + response.getStatusText());
 				throw new RuntimeException("Failed : HTTP error code : " + response.getStatusCode() + " " + response.getStatusText());
 			}
 			

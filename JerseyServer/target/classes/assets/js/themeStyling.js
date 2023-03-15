@@ -2,6 +2,74 @@
 
 var allRulesThemes = [];
 
+function customStylesDemo(feature, resolution) {
+	var newFeatureStyle = null;
+	var defaultFeatureStyle = new ol.style.Style({
+		stroke: new ol.style.Stroke({
+	        color: [160, 160, 160, 1],
+	        width: 1
+	    }),
+	    fill: new ol.style.Fill({
+	        color: [160, 160, 160, 0.4]
+	    }),
+	    image: new ol.style.Circle({
+    	    fill: new ol.style.Fill({
+    	      color: [160, 160, 160, 0.4]
+    	    }),
+    	    radius: 5,
+    	    stroke: new ol.style.Stroke({
+    	      color: [160, 160, 160, 1],
+    	      width: 1
+    	    })
+    	})
+	});
+	
+	for (var i=0; i<allRulesThemes.length; i++) {
+		var startInterval = allRulesThemes[i].startInterval;
+		var endInterval = allRulesThemes[i].endInterval;
+		var selectedColor = allRulesThemes[i].color;
+		var attrName = allRulesThemes[i].attrName;
+		var dataType = allRulesThemes[i].dataType;
+		var s, e;
+		
+		//If data type is number we do number comparison, else string comparison
+		if (dataType === 'number') {
+			s = Number(startInterval);
+			e = Number(endInterval);
+		}
+		else {
+			s = startInterval.toString();
+			e = endInterval.toString();
+		}
+		
+		if (feature.get(attrName) > s && feature.get(attrName) <= e) {
+			newFeatureStyle = new ol.style.Style({
+				stroke: new ol.style.Stroke({
+			        color: selectedColor,
+			        width: 1
+			    }),
+			    fill: new ol.style.Fill({
+			        color: hex2rgb(selectedColor, 0.4)
+			    }),
+			    image: new ol.style.Circle({
+		    	    fill: new ol.style.Fill({
+		    	      color: hex2rgb(selectedColor, 0.4)
+		    	    }),
+		    	    radius: 5,
+		    	    stroke: new ol.style.Stroke({
+		    	      color: selectedColor,
+		    	      width: 1
+		    	    })
+		    	})
+			});
+			return [newFeatureStyle];
+		}		
+	}
+	
+	return [defaultFeatureStyle];
+}
+
+
 function styleFeaturesTheme(name) {
 	var position = 0;
     for (var i=0; i<mapLayers.length; i++) {
@@ -11,37 +79,18 @@ function styleFeaturesTheme(name) {
         }
     }
 	
-    allRulesThemes = [];
-		
-	//Removed the filter to make it a general rule
-	var globalRule = new OpenLayers.Rule ({
-		symbolizer: {
-			strokeColor : "#A0A0A0",
-			fillColor : "#A0A0A0",
-			strokeWidth: 1,
-			iconSize : 10,
-			urlTemp : "./assets/images/map-pin-md.png",
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(globalRule);
+    //allRulesThemes = [];
 	
 	//Delete the feature from the color panel if it exist
 	removeFromColorPanel(name, position);
 	
 	switch(name) {
-		case 'fuel':
-			swefsRulesTemplate1(name);
+		case 'LAI':
+			laiRulesTemplate(name);
 			showColorPanel();
 			break;
-		case 'Cameras':
-			swefsRulesTemplate2(name);
-			showColorPanel();
-			break;
-		case 'query2':
-			leoRulesTemplate1(name);
+		case 'Instances per CLC category':
+			clcRulesTemplate(name);
 			showColorPanel();
 			break;
 		default:
@@ -49,517 +98,199 @@ function styleFeaturesTheme(name) {
 	}
     
 	//Re-render the layer with the new styles
-    var temp = map.getLayersByName(name);
-	temp[0].styleMap.styles.default.addRules(allRulesThemes);
-	temp[0].redraw();
-    
-    //Update the layer colors to default. This colorization is not saved
-    for (var i=0; i<mapLayers.length; i++) {
-		if (mapLayers[i].name === name) {
-			mapLayers[i].fillColor = '#FFB414';
-			mapLayers[i].strokeColor = '#FFB414';
-			mapLayers[i].icon = './assets/images/map-pin-md.png';
-			mapLayers[i].iconSize = 10;
-			
-			break;
-		}
+	//Apply the default style to the layer
+	map.getLayers().forEach(function(layer) {
+    	if (layer.get('title') == name) {
+    		layer.getSource().setStyle(customStylesDemo);
+    	}
+    });
+}
+
+function laiRulesTemplate(name) {	
+	var attrName = 'lai';
+	var startInterval, endInterval, selectedColor;
+	
+	//Create the layerInfo in the color panel
+	addColorPanel(attrName, -1, 0, 0, name);
+	
+	/******************************************/
+	startInterval = 0; endInterval = 0.1; selectedColor = colorTable[0];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanel(attrName, 0, startInterval, endInterval, name);
+	/******************************************/
+	startInterval = 0.1; endInterval = 0.2; selectedColor = colorTable[1];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanel(attrName, 1, startInterval, endInterval, name);
+	/******************************************/
+	startInterval = 0.2; endInterval = 0.3; selectedColor = colorTable[2];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanel(attrName, 2, startInterval, endInterval, name);
+	/******************************************/
+	startInterval = 0.3; endInterval = 0.5; selectedColor = colorTable[11];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanel(attrName, 11, startInterval, endInterval, name);
+	/******************************************/
+	startInterval = 0.5; endInterval = 1; selectedColor = colorTable[6];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanel(attrName, 6, startInterval, endInterval, name);
+	/******************************************/
+}
+
+function clcRulesTemplate(name) {	
+	var attrName = 'instances';
+	var startInterval, endInterval, selectedColor;
+	
+	//Create the layerInfo in the color panel
+	addColorPanel(attrName, -1, 0, 0, name);
+	
+	/******************************************/
+	startInterval = 24.9;
+	endInterval = 25;
+	selectedColor = colorTable[15];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 15, 'continuousUrbanFabric', name);
+	/******************************************/
+	startInterval = 18.9;
+	endInterval = 19; 
+	selectedColor = colorTable[16];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 16, 'industrialOrCommercialUnits', name);
+	/******************************************/
+	startInterval = 14.9; 
+	endInterval = 15; 
+	selectedColor = colorTable[17];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 17, 'roadAndRailNetworksAndAssociatedLand', name);
+	/******************************************/
+	startInterval = 9.9; 
+	endInterval = 10; 
+	selectedColor = colorTable[18];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 18, 'waterCourses', name);
+	/******************************************/
+	startInterval = 12.9; 
+	endInterval = 13; 
+	selectedColor = colorTable[19];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 19, 'discontinuousUrbanFabric', name);
+	/******************************************/
+	startInterval = 15.9; 
+	endInterval = 16; 
+	selectedColor = colorTable[20];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 20, 'greenUrbanAreas', name);
+	/******************************************/
+	startInterval = 5.9; 
+	endInterval = 6; 
+	selectedColor = colorTable[21];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 21, 'sportAndLeisureFacilities', name);
+	/******************************************/
+	startInterval = 0.9; 
+	endInterval = 1; 
+	selectedColor = colorTable[22];
+	var newFilter = new styleFilter(startInterval, endInterval, 'number', selectedColor, attrName);
+	allRulesThemes.push(newFilter);
+	
+	//add color to colorPanel
+	addColorPanelString(attrName, 22, 'waterBodiesL3', name);
+}
+
+/**
+ * Create color panel info
+ */
+function addColorPanelString(featureName, currentColor, info, layerName) {	
+	var panel, panelElement;
+	
+	if(currentColor == -1) {		
+		panel = document.getElementById('colorPanelBody');
+		panelElement = document.createElement('div');
+		panelElement.setAttribute('id', layerName+featureName);
+		panel.appendChild(panelElement);
+		
+		panel = document.getElementById(layerName+featureName);
+		panelElement = document.createElement('label');	
+		panelElement.innerHTML = '<br>Layer: '+layerName+'<br>Feature: '+featureName;
+		panelElement.setAttribute('style', 'text-align: left');
+		panelElement.style.fontSize = '12px';	
+		panel.appendChild(panelElement);
 	}
-}
-
-function swefsRulesTemplate1(name) {
-	var attrName = 'fuelTypeId', textInfo;
-	var startInterval, endInterval = null;
-	
-	//Create the layerInfo in the color panel
-	addColorPanelThemes(attrName, -1, 0, 0, name, null, null, null);
-	
-	/******************************************/
-	startInterval = 0;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#C0C0C0',
-			strokeColor: '#C0C0C0',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#C0C0C0', startInterval, endInterval, name, 'No fuel', null, null);
-	/******************************************/
-	startInterval = 1;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#66CC00',
-			strokeColor: '#66CC00',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#66CC00', startInterval, endInterval, name, 'Short grass (0.3m)', null, null);
-	/******************************************/
-	startInterval = 4;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#006600',
-			strokeColor: '#006600',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#006600', startInterval, endInterval, name, 'Chaparral (1.8m)', null, null);
-	/******************************************/
-	startInterval = 6;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#666600',
-			strokeColor: '#666600',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#666600', startInterval, endInterval, name, 'Dormant brush, hard-wood slash', null, null);
-	/******************************************/
-	startInterval = 8;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#FF9933',
-			strokeColor: '#FF9933',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#FF9933', startInterval, endInterval, name, 'Closed timber litter', null, null);
-	/******************************************/
-	startInterval = 10;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#CC6600',
-			strokeColor: '#CC6600',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#CC6600', startInterval, endInterval, name, 'Timber (litter and understory)', null, null);
-	/******************************************/
-}
-
-function swefsRulesTemplate2(name) {
-	var attrName = 'fireProbability', textInfo;
-	var startInterval, endInterval;
-	
-	//Create the layerInfo in the color panel
-	addColorPanelThemes(attrName, -1, 0, 0, name, null, null, null);
-	
-	/******************************************/
-	startInterval = 0; endInterval = 0.2;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#0000FF',
-			strokeColor: '#0000FF',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#0000FF', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 0.2; endInterval = 0.4;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#009900',
-			strokeColor: '#009900',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#009900', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 0.4; endInterval = 0.6;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#CCCC00',
-			strokeColor: '#CCCC00',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#CCCC00', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 0.6; endInterval = 0.8;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#FF8000',
-			strokeColor: '#FF8000',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#FF8000', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 0.8; endInterval = 1;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#FF0000',
-			strokeColor: '#FF0000',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#FF0000', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-}
-
-function leoRulesTemplate1(name) {
-	var attrName = 'hasCV';
-	var startInterval, endInterval;
-	
-	//Create the layerInfo in the color panel
-	addColorPanelThemes(attrName, -1, 0, 0, name, null, null, null);
-	
-	/******************************************/
-	startInterval = 0; endInterval = 10;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#00BFFF',
-			strokeColor: '#00BFFF',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#00BFFF', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 10; endInterval = 30;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#90EE90',
-			strokeColor: '#90EE90',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#90EE90', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 30; endInterval = 60;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#FFFF00',
-			strokeColor: '#FFFF00',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#FFFF00', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 60; endInterval = 80;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#FF6347',
-			strokeColor: '#FF6347',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#FF6347', startInterval, endInterval, name, '', '[', ')');
-	/******************************************/
-	startInterval = 80; endInterval = 100;
-	var myRule = new OpenLayers.Rule ({
-		filter: new OpenLayers.Filter.Logical ({
-			type: OpenLayers.Filter.Logical.AND,
-			filters: [ 
-			           new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: startInterval
-					   }),
-					   new OpenLayers.Filter.Comparison ({
-			        	   type: OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO,
-			        	   property: attrName,
-			        	   value: endInterval
-					   })
-			         ]
-		}),
-		symbolizer: {
-			fillColor: '#8B008B',
-			strokeColor: '#8B008B',
-			strokeWidth: 1,
-			iconSize : 10,
-			graphicOpacity: 1,
-			fillOpacity: 0.3,
-	        strokeOpacity: 1
-		}
-	});	
-	allRulesThemes.push(myRule);	
-	//add color to colorPanel
-	addColorPanelThemes(attrName, '#8B008B', startInterval, endInterval, name, '', '[', ']');
-	/******************************************/
+	else {
+		//Create a new row
+		panel = document.getElementById(layerName+featureName);
+		panelElement = document.createElement('div');
+		panelElement.setAttribute('class', 'row');
+		panelElement.setAttribute('id', 'row'+layerName+currentColor+featureName+info);
+		panelElement.setAttribute('style', 'margin-top: 2px');
+		panel.appendChild(panelElement);
+		
+		//Add color box to row
+		panel = document.getElementById('row'+layerName+currentColor+featureName+info);
+		panelElement = document.createElement('div');
+		panelElement.setAttribute('class', 'col-md-3 col-sm-3 col-xs-6');
+		panelElement.setAttribute('id', 'divColorId'+layerName+currentColor+featureName+info);
+		panelElement.setAttribute('style', 'margin-top: 2px');
+		panel.appendChild(panelElement);
+		
+		panel = document.getElementById('divColorId'+layerName+currentColor+featureName+info);
+		panelElement = document.createElement('button');	
+		panelElement.setAttribute('type', 'button');
+		panelElement.setAttribute('class', 'btn btn-xs');
+		panelElement.setAttribute('id', 'colorP'+layerName+currentColor+featureName+info);
+		panelElement.setAttribute('style', 'background-color: '+colorTable[currentColor]);
+		panelElement.innerHTML = 'color';
+		panel.appendChild(panelElement);
+		
+		//Add the interval for the color
+		panel = document.getElementById('row'+layerName+currentColor+featureName+info);
+		panelElement = document.createElement('div');
+		panelElement.setAttribute('class', 'col-md-9 col-sm-9 col-xs-12');
+		panelElement.setAttribute('id', 'divInterval'+layerName+currentColor+featureName+info);
+		panelElement.setAttribute('style', 'margin-top: 2px');
+		panel.appendChild(panelElement);
+						
+		panel = document.getElementById('divInterval'+layerName+currentColor+featureName+info);
+		panelElement = document.createElement('label');	
+		panelElement.innerHTML = '[ '+info+' ]';
+		panelElement.style.fontSize = '15px';	
+		panel.appendChild(panelElement);
+	}
 }
 
 /**

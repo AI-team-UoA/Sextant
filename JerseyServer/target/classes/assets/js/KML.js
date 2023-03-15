@@ -41,6 +41,7 @@ function addKMLLayerFromModal(){
  * Adds the given KML file as a new layer on the map.
  */
 function addKmlLayer(label, filename, styling, isTemp) {
+	console.log(filename);
 	if (filename && label) {
 		checkLayerURL(label, filename);
 		
@@ -60,7 +61,8 @@ function addKmlLayer(label, filename, styling, isTemp) {
 		
 		map.addLayer(layer);
 		
-		var listenerKey = layer.getSource().on('change', function(e) {
+		var listenerKey = layer.getSource().once('change', function(e) {
+			
 			  if (layer.getSource().getState() == 'ready') {			    
 					
 					if (isTemp) {
@@ -76,12 +78,19 @@ function addKmlLayer(label, filename, styling, isTemp) {
 			    		}
 			    	}
 					
+					//Update color themes	
+					if (label == 'LAI' || label == 'Instances per CLC category') {
+						styleFeaturesTheme(label);
+					}
+					
 					map.getView().fit(layer.getSource().getSource().getExtent(), map.getSize());
 					//console.log(layer.getSource().getSource().getFeatures().length);
 				    
 					//Unregister the "change" listener 
 					layer.getSource().unByKey(listenerKey);			    
 			  }
-		});    	
+		});   
+		
+		
 	}
 }

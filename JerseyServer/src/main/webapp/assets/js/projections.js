@@ -10,3 +10,4 @@ Proj4js.defs["EPSG:3395"] = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84
 Proj4js.defs["EPSG:26713"] = "+proj=utm +zone=13 +ellps=clrk66 +datum=NAD27 +units=m +no_defs";
 Proj4js.defs["EPSG:3857"] = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs";
 Proj4js.defs["EPSG:26713"] = "+proj=utm +zone=13 +ellps=clrk66 +datum=NAD27 +units=m +no_defs";
+Proj4js.defs["EPSG:3413"] = "+proj=stere +lat_0=90 +lat_ts=70 +lon_0=-45 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";

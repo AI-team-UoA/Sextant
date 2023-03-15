@@ -13,17 +13,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509TrustManager;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
@@ -32,6 +40,7 @@ import org.openrdf.rio.RDFFormat;
 
 import eu.earthobservatory.org.StrabonEndpoint.client.EndpointResult;
 import eu.earthobservatory.org.StrabonEndpoint.client.HTTPClient;
+
 
 /**
  * This class is the implementation of a java client for accessing
@@ -50,7 +59,7 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 	public GeneralSPARQLEndpoint(String host, int port, String endpointName) {
 		super(host, port, endpointName);
 	}
-
+	
 	
 	/**
 	 * Executes a SPARQL query on the Endpoint and get the results
@@ -69,36 +78,54 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 	public EndpointResult query(String sparqlQuery, stSPARQLQueryResultFormat format, String endpointType) throws IOException {
 		assert(format != null);
 		
-		//System.out.println(URLEncoder.encode(sparqlQuery, "UTF-8"));
-		// create a post method to execute
-		HttpPost method = new HttpPost(getConnectionURL());
+		// create a method to execute
 		
+		String newUrl =  getConnectionURL();
+		//String newUrl =  getConnectionURL().replace("http:", "https:");
+		System.out.println(newUrl);
+		
+		HttpPost method = new HttpPost(getConnectionURL());
+		HttpGet testMethod = new HttpGet(newUrl);
+
 		// set the query parameter
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("query", sparqlQuery));
-		
-		//Add required parameters for Vistuoso SPARQL endpoints
-		if (!getConnectionURL().contains("openrdf-sesame")) {
-			params.add(new BasicNameValuePair("default-graph-uri", "http://"+endpointType));
-		}
+		params.add(new BasicNameValuePair("format", format.getDefaultMIMEType()));
 		
 		UrlEncodedFormEntity encodedEntity = new UrlEncodedFormEntity(params, Charset.forName("UTF-8"));
 		method.setEntity(encodedEntity);
-		
+		try {
+			URI uri = new URIBuilder(testMethod.getURI())
+				.addParameter("query", sparqlQuery)
+				.addParameter("format", format.getDefaultMIMEType())
+				.build();
+				testMethod.setURI(uri);	
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		// set the content type
 		method.setHeader("Content-Type", "application/x-www-form-urlencoded");
+		testMethod.setHeader("Content-Type", "application/x-www-form-urlencoded");
 		
 		// set the accept format
-		method.addHeader("Accept", format.getDefaultMIMEType());		
+		System.out.println(format.getDefaultMIMEType());
+		method.addHeader("Accept", format.getDefaultMIMEType());	
+		testMethod.addHeader("Accept", format.getDefaultMIMEType());	
 		
 		try {
 			// response that will be filled next
 			String responseBody = "";
 			
-			// execute the method
-			HttpResponse response = hc.execute(method);
+			
+
+			// execute the method - NO HTTPS supported
+			HttpResponse response = hc.execute(testMethod);
+
+
 			int statusCode = response.getStatusLine().getStatusCode();
+			System.out.println(statusCode);
 			
 			// If the response does not enclose an entity, there is no need
 			// to worry about connection release
@@ -114,6 +141,7 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 					String nextLine;
 					while ((nextLine = reader.readLine()) != null) {
 						strBuf.append(nextLine + "\n");
+						//System.out.println(nextLine);
 					}
 					
 					// remove last newline character
@@ -122,7 +150,7 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 					}
 					
 					responseBody = strBuf.toString();
-					//System.out.println(responseBody);
+					System.out.println(responseBody);
 
 				} catch (IOException ex) {
 					// In case of an IOException the connection will be released

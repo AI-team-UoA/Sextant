@@ -65,7 +65,7 @@ function getMapSearchResults() {
 		searchTheme = 'none';
 	}	
 	
-	var searchPortValue = document.getElementById('mapIdEndpointSearchPort').value;
+	var searchPortValue = '';
 	portSearch = 80;
 	if (searchPortValue != "") {
 		portSearch = Number(searchPortValue);
@@ -77,7 +77,16 @@ function getMapSearchResults() {
 		endpointSearch = 'registry';
 	}
 	else {
-		searchEndpoint = searchEndpoint.replace("http://", "");
+		portSearch = getPort(searchEndpoint);
+		if (searchEndpoint.slice(0,5) == "https") {
+			searchEndpoint = searchEndpoint.replace("https://", "");
+			
+		}else if (searchEndpoint.slice(0,5) == "http:") {
+			searchEndpoint = searchEndpoint.replace("http://", "");
+			
+		} else {
+			
+		}
 		var parts = searchEndpoint.split('/');	
 		hostSearch = parts[0];
 		endpointSearch = parts[1];		

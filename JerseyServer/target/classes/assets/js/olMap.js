@@ -35,6 +35,7 @@ var fadeTimeFast = 1000;
  * Ajax calls timeout set to 5 min
  */
 var ajaxTimeout = 300000;
+ajaxTimeout = 0;
 
 /**
  * Disable or enable sextant features. Set to true to disable all OK buttons,
@@ -52,8 +53,17 @@ disableSaveMap = false;
  * URL of the mobile server
  */
 var myHost = window.location.href;
-var arrHost = myHost.replace("http://", "").split("/");
-var rootURL = 'http://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';
+
+//Check for HTTPS
+if (myHost.startsWith("https")) {
+	var arrHost = myHost.replace("https://", "").split("/");
+	var rootURL = 'https://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';	
+}
+else {
+	var arrHost = myHost.replace("http://", "").split("/");
+	var rootURL = 'http://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';
+}
+
 var parseRootURL = arrHost[0].split(':');
 var server = parseRootURL[0];
 
@@ -189,8 +199,10 @@ function getBingKey() {
 }
 
 function initMap(results, status, jqXHR) {
-	if (results == 'none') {
+	console.log(results);
+	if (results == 'none' || results == '') {
 		bingMapsKey = null;
+		document.getElementById('coordinates').style.color = '#A30052';	
 	}
 	else {
 		bingMapsKey = results.toString();
@@ -492,8 +504,10 @@ function initialize() {
 		                
 	    });
 	    		
-		initTimeline();		              
+		initTimeline();	
 	}
+	
+	
 	
 	//Parse host to determine if the client is bind to a server or stand-alone
 	var getServer = window.location.href.split('/');
@@ -844,4 +858,36 @@ function checkURLError(jqXHR, textStatus, errorThrown) {
 }
 
 
+proj4.defs('EPSG:3413', '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=-45 +k=1 ' +
+'+x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs');
+var proj3413 = ol.proj.get('EPSG:3413');
+proj3413.setExtent([-4194304, -4194304, 4194304, 4194304]);
+
+function pvRun() {	
+	var newProj = ol.proj.get('EPSG:3413');
+    var newProjExtent = newProj.getExtent();
+    var newView = new ol.View({
+      projection: newProj,
+      center: ol.extent.getCenter(newProjExtent),
+      zoom: 0,
+      extent: newProjExtent
+    });
+    map.setView(newView);
+    
+    
+    
+}
+
+function normalRun() {	
+	var newProj = ol.proj.get('EPSG:3857');
+    var newProjExtent = newProj.getExtent();
+    var newView = new ol.View({
+      projection: newProj,
+      center: ol.extent.getCenter(newProjExtent),
+      zoom: 0,
+      extent: newProjExtent
+    });
+    map.setView(newView);
+    
+}
 

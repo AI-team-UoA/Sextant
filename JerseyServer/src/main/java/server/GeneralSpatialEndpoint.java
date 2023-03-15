@@ -63,6 +63,7 @@ public class GeneralSpatialEndpoint extends GeneralSPARQLEndpoint {
 		}
 		
 		String xml = xmlResult.getResponse();
+		System.out.println(xml);
 		
 		InputStream inputStream = new ByteArrayInputStream(xml.getBytes("UTF-8"));  
 		TupleQueryResult results = QueryResultIO.parse(inputStream, TupleQueryResultFormat.SPARQL);

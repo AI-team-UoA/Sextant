@@ -288,25 +288,34 @@ public class MapEndpointStore {
 		Vector<String> info = new Vector<String>();
 		
 		String queryList = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
-				+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
-				+ "SELECT DISTINCT  ?super ?class "
-				+ "WHERE { "
-				+ "?s rdf:type ?class . "
-				+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
-		//		+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
-				+ "} "
-				+ "ORDER BY ?super";	
+			 + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
+			 + "SELECT DISTINCT ?super ?class "
+			 + "WHERE { "
+			 + "?x rdf:type ?class . "
+			 + "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
+			 + "} "
+			 + "ORDER BY ?super ";	
+		
+		String queryList1 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
+			+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
+			+ "PREFIX owl: <http://www.w3.org/2002/07/owl#> "
+			+ "SELECT DISTINCT ?super ?class "
+			+ "WHERE { "
+			+ "?class rdf:type owl:Class . "
+			+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
+			+ "} "
+			+ "ORDER BY ?super";
 		
 		String queryList2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 				+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
 				+ "PREFIX owl: <http://www.w3.org/2002/07/owl#> "
 				+ "SELECT DISTINCT  ?super ?class "
 				+ "WHERE { "
-				+ "{?class rdf:type rdfs:Class . "
-				+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
+		//		+ "{?class rdf:type rdfs:Class . "
+		//		+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
 		//		+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
-				+ "} "
-				+ "UNION "
+		//		+ "} "
+		//		+ "UNION "
 				+ "{?class rdf:type owl:Class . "
 				+ "OPTIONAL { ?class rdfs:subClassOf ?super . } . "
 		//		+ "BIND ( IF(!bound(?super), \"null\", ?super) AS ?super ). "
@@ -315,7 +324,8 @@ public class MapEndpointStore {
 				+ "ORDER BY ?super";	
 		
 		//Initialize the endpoint given by the user and pose query
-		results = getQueryResults(host, port, endpoint, queryList2);
+		
+		results = getQueryResults(host, port, endpoint, queryList);
 						
 		if (results.size() != 0) {
 			for (int i=0; i<results.size(); i++) {
@@ -369,7 +379,7 @@ public class MapEndpointStore {
 //				+ "FILTER (?pType = owl:DatatypeProperty || ?pType = owl:ObjectProperty || ?pType = rdf:Property) . "
 				+ "OPTIONAL { ?p rdfs:range ?range . } . "
 //				+ "BIND ( IF(!bound(?range), \"null\", ?range) AS ?range ). "				
-				+ "} ";	
+				+ "} LIMIT 30";	
 		
 		//Use RDFS and OWL to get the properties of a Class. It is faster than queryList1, but we dont get the properties of the super classes
 		String queryList2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
@@ -858,6 +868,7 @@ public class MapEndpointStore {
 		return allLayersInfo;
 	}
 	
+	//According to endpointType detect the Strabon endpoints
 	private Vector<String> getResultFromQuery(GeneralSPARQLEndpoint endpoint, String query, String endpointType) throws EndpointCommunicationException { 
 		String msg = MapEndpointStore.ENDPOINT_FAILURE_MSG + endpoint.getConnectionURL();
 				
@@ -940,6 +951,10 @@ public class MapEndpointStore {
 	public Vector<String> getQueryResults(String host, int port, String endpoint, String queryString) throws EndpointCommunicationException{
 		Vector<String> results = new Vector<String>();
 		//Initialize the endpoint given by the user.
+		System.out.println(host);
+		System.out.println(port);
+		System.out.println(endpoint);
+		
 		myGeneralEndpoint_query = new GeneralSPARQLEndpoint(host, port, endpoint);
 		results = getResultFromQuery(myGeneralEndpoint_query, queryString, host);		
 		

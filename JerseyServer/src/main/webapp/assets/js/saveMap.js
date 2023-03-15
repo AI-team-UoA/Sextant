@@ -31,9 +31,29 @@ function showLayerBox() {
 	var num = document.getElementById('mapIdType').length;
  	if (document.getElementById('infoMapId').innerHTML != "" && num < 2) {
  		var element = document.createElement('option');
+ 		element.setAttribute('value', '2');
  	  	element.innerHTML = 'update existing map';
  	  	document.getElementById('mapIdType').appendChild(element);
  	}
+}
+
+function autocompleteMapInfo() {
+	var selectBox = document.getElementById("mapIdType");
+    var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+    console.log(selectedValue);
+	console.log("change data");
+	if (selectedValue == 2){
+		document.getElementById('mapTitle').value = document.getElementById('infoMapTitle').innerHTML;
+		document.getElementById('mapCreator').value = document.getElementById('infoCreator').innerHTML;
+		document.getElementById('mapLicense').value = document.getElementById('infoLicense').innerHTML;
+		document.getElementById('mapTheme').value = document.getElementById('infoTheme').innerHTML;
+	}
+	else {
+		document.getElementById('mapTitle').value = '';
+		document.getElementById('mapCreator').value = '';
+		document.getElementById('mapLicense').value = '';
+		document.getElementById('mapTheme').value = '';
+	}
 }
 
 function resetLayerSelection() {
@@ -58,7 +78,7 @@ function saveMapToEndpoint() {
 		license = 'none';
 	}
 	var theme = document.getElementById('mapTheme').value;
-	var portValue = document.getElementById('mapEndpointPort').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
@@ -95,8 +115,20 @@ function saveMapToEndpoint() {
 		user = "temp";
 		pass = "temp";
 	}
+	else {
+		port = getPort(endpointURI);
+	}
 	
-	endpointURI = endpointURI.replace("http://", "");
+	if (endpointURI.slice(0,5) == "https") {
+		endpointURI = endpointURI.replace("https://", "");
+		
+	}else if (endpointURI.slice(0,5) == "http:") {
+		endpointURI = endpointURI.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpointURI.split('/');
 	var host = parts[0];
 	var endpoint = parts[1];

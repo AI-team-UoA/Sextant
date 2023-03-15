@@ -69,9 +69,10 @@ function visualizeClass(classURI) {
 				  'PREFIX geo: <http://www.opengis.net/ont/geosparql#> \n' +
 				  'PREFIX geof: <http://www.opengis.net/def/function/geosparql/> \n' +
 				  
-				  'SELECT * \n' +
+				  'SELECT DISTINCT ?x ?wkt ?o \n' +
 				  'WHERE { \n' +
-				  '?x rdf:type <' + currentClassURI + '> . ';	
+				  '?x rdf:type <' + currentClassURI + '> . ' +
+				  '?x ?p ?o . ';	
 	
 	for (var i=0; i<allClassFilters.length; i++) {
 		if (allClassFilters[i].classURI === currentClassURI) {
@@ -80,7 +81,7 @@ function visualizeClass(classURI) {
 					filterQuery += '\n ?x <'+allClassFilters[i].geoURI+'> ?wkt . ';
 					break;
 				case 'GML':
-					filterQuery += '\n ?x <'+allClassFilters[i].geoURI+'> ?gml . ';
+					filterQuery += '\n ?x <'+allClassFilters[i].geoURI+'> ?wkt . ';
 					break;
 				case 'GEOSPARQL':
 					filterQuery += '\n ?x geo:hasGeometry ?geo . \n' +
@@ -107,13 +108,24 @@ function visualizeExploreClass() {
 	document.getElementById('alertMsgServerWait').style.display = 'block';
 	showSpinner(colorSpin);
 	
-	var portValue = document.getElementById('endpointUrlPortExplore').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
-	var endpointURI = document.getElementById('endpointUrlExplore').value;	
-	endpointURI = endpointURI.replace("http://", "");
+	var endpointURI = document.getElementById('endpointUrlExplore').value;
+	port = getPort(endpointURI);
+	
+	if (endpointURI.slice(0,5) == "https") {
+		endpointURI = endpointURI.replace("https://", "");
+		
+	}else if (endpointURI.slice(0,5) == "http:") {
+		endpointURI = endpointURI.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpointURI.split('/');
 	var host = parts[0];
 	var endpointName = "";
@@ -233,13 +245,13 @@ function fiterToQueryString(filter, itter, geoType) {
 		case 'spatial.intersect':
 			switch (geoType) {
 				case 'WKT':
-					str += 'FILTER( geof:sfIntersects( ?wkt, "' + filter.value + '"^^<http://www.opengis.net/ont/geosparql#wktLiteral>) ) . ';
+					str += 'FILTER( geof:sfIntersects( ?wkt, "<http://www.opengis.net/def/crs/EPSG/0/4326> ' + filter.value + '"^^<http://www.opengis.net/ont/geosparql#wktLiteral>) ) . ';
 					break;
 				case 'GML':
-					str += 'FILTER( geof:sfIntersects( ?gml, "' + filter.value + '"^^<http://www.opengis.net/ont/geosparql#wktLiteral>) ) . ';
+					str += 'FILTER( geof:sfIntersects( ?gml, "<http://www.opengis.net/def/crs/EPSG/0/4326> ' + filter.value + '"^^<http://www.opengis.net/ont/geosparql#wktLiteral>) ) . ';
 					break;
 				case 'GEOSPARQL':
-					str += 'FILTER( geof:sfIntersects( ?wkt, "' + filter.value + '"^^<http://www.opengis.net/ont/geosparql#wktLiteral>) ) . ';
+					str += 'FILTER( geof:sfIntersects( ?wkt, "<http://www.opengis.net/def/crs/EPSG/0/4326> ' + filter.value + '"^^<http://www.opengis.net/ont/geosparql#wktLiteral>) ) . ';
 					break;
 			}
 			break;

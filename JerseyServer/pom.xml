@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.earthobservatory</groupId>
 	<artifactId>Sextant</artifactId>
-	<version>2.0.0</version>
+	<version>3.0.0</version>
 	<packaging>war</packaging>
 	
 	<properties>
-		<strabon.version>3.2.9-temporals</strabon.version>
-		<sesame.version>2.6.3</sesame.version>
-		<geotools.version>2.7.4</geotools.version>
+	<strabon.version>3.3.1</strabon.version>
+	<!--  <strabon.version>3.2.11-temporals</strabon.version> -->
+	<sesame.version>2.6.3</sesame.version>	
+	<!--	<geotools.version>2.7.4</geotools.version> -->
 		
 		<maven.compiler.target>1.6</maven.compiler.target>
 
 		<!-- version for httpclient and relevant components -->
-		<httpcomponentsVersions>4.5.6</httpcomponentsVersions>
+		<httpcomponentsVersions>4.2</httpcomponentsVersions>
 		<fileupload.version>1.3</fileupload.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -123,7 +124,7 @@
 			<version>2.2.0</version>
 		</dependency>
 		
-		<!-- GeoTools (for SRS transformations) -->
+		<!-- GeoTools (for SRS transformations)
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-referencing</artifactId>
@@ -134,6 +135,7 @@
 			<artifactId>gt-epsg-wkt</artifactId>
 			<version>${geotools.version}</version>
 		</dependency>
+        -->
 		
 		<!-- JSON-LD -->
 		<dependency>
@@ -145,7 +147,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.9.6</version>
+			<version>2.6.3</version>
 		</dependency>
 		
 		<!-- Twitter4j -->
@@ -182,8 +184,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -208,7 +210,7 @@
 			</snapshots>
 			<id>strabon</id>
 			<name>Strabon - maven repository</name>
-			<url>http://maven.strabon.di.uoa.gr/content/repositories/releases</url>
+			<url>https://maven.strabon.di.uoa.gr/content/repositories/releases</url>
 		</repository>
 
 		<repository>
@@ -220,7 +222,7 @@
 			</snapshots>
 			<id>strabon.snapshot</id>
 			<name>Strabon - maven repository - snapshots</name>
-			<url>http://maven.strabon.di.uoa.gr/content/repositories/snapshots</url>
+			<url>https://maven.strabon.di.uoa.gr/content/repositories/snapshots</url>
 		</repository>
 
 		<repository>
@@ -232,27 +234,42 @@
 			</snapshots>
 			<id>strabon.sesame</id>
 			<name>Strabon - maven repository - sesame artifacts (temporary)</name>
-			<url>http://maven.strabon.di.uoa.gr/content/repositories/strabon.sesame/</url>
+			<url>https://maven.strabon.di.uoa.gr/content/repositories/strabon.sesame/</url>
 		</repository>
 
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
 			<name>Java.net Maven 2 Repository</name>
-			<url>http://download.java.net/maven/2</url>
+			<url>https://download.java.net/maven/2</url>
 			<layout>default</layout>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
 
-		<repository>
+	<!--	<repository>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
 			<id>osgeo</id>
 			<name>OpenGeo Maven Repository</name>
 			<url>http://download.osgeo.org/webdav/geotools/</url>
-		</repository>
+		</repository> -->
+        
+        <repository>
+				<id>osgeo</id>
+				<name>OSGeo Release Repository</name>
+				<url>https://repo.osgeo.org/repository/release/</url>
+				<snapshots><enabled>false</enabled></snapshots>
+				<releases><enabled>true</enabled></releases>
+			</repository>
+			<repository>
+				<id>osgeo-snapshot</id>
+				<name>OSGeo Snapshot Repository</name>
+				<url>https://repo.osgeo.org/repository/snapshot/</url>
+				<snapshots><enabled>true</enabled></snapshots>
+				<releases><enabled>false</enabled></releases>
+			</repository>
 
 	</repositories>
 	

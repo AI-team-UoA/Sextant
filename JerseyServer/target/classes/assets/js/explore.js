@@ -3,15 +3,28 @@
  * with their properties and the range of each property.
  */
 function exploreEndpoint() {
-	var portValue = document.getElementById('endpointUrlPortExplore').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
+	
 	var endpoint = document.getElementById('endpointUrlExplore').value;
-	endpoint = endpoint.replace("http://", "");
+	console.log("************"+endpoint);
+	port = getPort(endpoint);
+	
+	if (endpoint.slice(0,5) == "https") {
+		endpoint = endpoint.replace("https://", "");
+		
+	}else if (endpoint.slice(0,5) == "http:") {
+		endpoint = endpoint.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpoint.split('/');
-	var host = parts[0];
+	var host = parts[0].split(':')[0];
 	var endpointName = "";
 	for (var i=1; i<parts.length-1; i++) {
 		endpointName += parts[i] + '@@@';
@@ -36,6 +49,32 @@ function exploreEndpoint() {
     });
 }
 
+function getPort(urlTemplate) {
+	var port = 80;
+	var url = "";
+	
+	if (urlTemplate.slice(0,5) == "https") {
+		url = urlTemplate.replace("https://", "");
+		
+	}else if (urlTemplate.slice(0,5) == "http:") {
+		url = urlTemplate.replace("http://", "");
+		
+	} else {
+		
+	}
+	
+	var parts = url.split('/');
+	try {
+		port = Number(parts[0].split(':')[1]);
+	}
+	catch (err) {
+		console.log(err);
+	}
+	
+	console.log(port);
+	return ((isNaN(port)) ? 80 : port);
+}
+
 function parseExploreResults(results, status, jqXHR) {
 	hideSpinner();
     setTimeout(function() {$('#alertMsgServerWait').fadeOut('slow');}, fadeTime);
@@ -54,7 +93,7 @@ function parseExploreResults(results, status, jqXHR) {
 			createClassButton(arr[i], divRef, false);							
 		}		
 	}	
-	
+
 	updateSuperButtons(arr);
 	updateBreadcrumbs(arr);
 }
@@ -93,8 +132,11 @@ function addSpatialObjects(allProps) {
 function updateSuperButtons(arr) {
 	for (var i=0; i<arr.length-2; i+=2) {
 		if (arr[i] != 'null') {
-			updateSuperButton(arr[i], arr[i+1]);
-			updateBadge(arr[i]);
+			console.log(arr[i], arr[i+1]);
+			if (arr[i] != arr[i+1]) {
+				updateSuperButton(arr[i], arr[i+1]);	
+				updateBadge(arr[i]);
+			}
 		}
 	}	
 }
@@ -196,18 +238,25 @@ function updateSuperButton(superURI, subURI) {
 	var divRef = document.getElementById('classWell'+idPartSuper);
 	 
 	var check = document.getElementById(nameSub+'MYDELIMETERclass'+idPartSub);
-	//Clone and add the node to the hierarchy
-	var clone = check.cloneNode(true);
-	divRef.appendChild(clone);
+	
+	if (check != null) {
+		//Clone and add the node to the hierarchy
+		var clone = check.cloneNode(true);
+		clone.id += 'CLONE';
+		divRef.appendChild(clone);
+		//console.log(divRef);
 		
-	//Remove old node
-	check.parentNode.removeChild(check);	
+		//Remove old node
+		check.parentNode.removeChild(check);
+	}
+		
+	
 }
 
 function updateBreadcrumbs(arr) {
 	for (var i=0; i<arr.length-2; i++) {
 		if (arr[i] != 'null') {
-			updateBreadCrumb(arr[i]);
+			//updateBreadCrumb(arr[i]);
 		}
 	}
 }
@@ -240,19 +289,30 @@ function updateBadge(superURI) {
 	var nameSuper = getName(superURI);
 	var idPartSuper = getIdPart(superURI);
 	var element = document.getElementById('buttonBadge'+idPartSuper);
-	
+
 	element.name = (Number(element.name) + 1).toString();
 	element.innerHTML = nameSuper + ' <span class="badge">'+ element.name +'</span>';
 }
 
 function addClassProperty(classURI) {		
-	var portValue = document.getElementById('endpointUrlPortExplore').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
 	var endpoint = document.getElementById('endpointUrlExplore').value;
-	endpoint = endpoint.replace("http://", "");
+	port = getPort(endpoint);
+	
+	if (endpoint.slice(0,5) == "https") {
+		endpoint = endpoint.replace("https://", "");
+		
+	}else if (endpoint.slice(0,5) == "http:") {
+		endpoint = endpoint.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpoint.split('/');
 	var host = parts[0];
 	var endpointName = "";
@@ -377,7 +437,16 @@ function checkForClass(URI) {
 }
 
 function getName(URI) {
-	URI = URI.replace("http://", "");
+	if (URI.slice(0,5) == "https") {
+		URI = URI.replace("https://", "");
+		
+	}else if (URI.slice(0,5) == "http:") {
+		URI = URI.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var arr = URI.split('/');
 	var name = arr[arr.length-1];
 	var arr = name.split('#');
@@ -389,7 +458,16 @@ function getName(URI) {
 }
 
 function getIdPart(URI) {
-	URI = URI.replace("http://", "");
+	if (URI.slice(0,5) == "https") {
+		URI = URI.replace("https://", "");
+		
+	}else if (URI.slice(0,5) == "http:") {
+		URI = URI.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	URI = URI.replace(/\//g, '');
 	URI = URI.replace(/#/g, '');
 	URI = URI.replace(/\./g, '');
@@ -456,13 +534,24 @@ function discoverURI(classURI) {
 	elementURI.appendChild(element);
 	
 	//Pose discover query and add results to the modal
-	var portValue = document.getElementById('endpointUrlPortExplore').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
 	var endpoint = document.getElementById('endpointUrlExplore').value;
-	endpoint = endpoint.replace("http://", "");
+	port = getPort(endpoint);
+	
+	if (endpoint.slice(0,5) == "https") {
+		endpoint = endpoint.replace("https://", "");
+		
+	}else if (endpoint.slice(0,5) == "http:") {
+		endpoint = endpoint.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpoint.split('/');
 	var host = parts[0];
 	var endpointName = "";

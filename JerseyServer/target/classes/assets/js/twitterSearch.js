@@ -166,7 +166,7 @@ function getLocation(keywords) {
         jsonp: "jsonp",
         success: function (data) {
         	var result = data.resourceSets[0];
-        	//console.log(keywords.keys);
+        	console.log(keywords.keys);
             if (result) {
             	if (result.estimatedTotal > 0) {
             		//All locations relevant to the given name. Get the first match
@@ -188,7 +188,7 @@ function getLocation(keywords) {
             }
         },
         error: function(msg) {
-        	//console.log(keywords.keys);
+        	console.log(keywords.keys);
 
         	//No location keywords detected
         	$.ajax({
@@ -207,6 +207,9 @@ function getLocation(keywords) {
 }
 
 function addTwittOnMap(twittID, twittLocation) {
+	if (twittLocation == undefined) {
+		return;
+	}
 	var parseLocation = twittLocation.split(',');
 	var lat = Number(parseLocation[0]);
 	var lon = Number(parseLocation[1]);

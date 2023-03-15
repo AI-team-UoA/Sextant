@@ -4,7 +4,7 @@
 function addMapFromId() {
 	var id = document.getElementById('mapId').value;
 	var endpoint = document.getElementById('mapIdEndpoint').value;
-	var portValue = document.getElementById('mapIdEndpointPort').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
@@ -19,7 +19,17 @@ function addMapFromId() {
 		getMapInfo(id, "none", "none", "none", 80);
 	}
 	else {
-		endpoint = endpoint.replace("http://", "");
+		port = getPort(endpoint);
+		if (endpoint.slice(0,5) == "https") {
+			endpoint = endpoint.replace("https://", "");
+			
+		}else if (endpoint.slice(0,5) == "http:") {
+			endpoint = endpoint.replace("http://", "");
+			
+		} else {
+			
+		}
+		
 		var parts = endpoint.split('/');
 		
 		getMapInfo(id, parts[0], parts[1], parts[2], port);
@@ -42,6 +52,8 @@ function addMapFromId() {
 var globalId = 0;
 function getMapInfo(mapId, host, endpoint, qType, port) {
 	globalId = mapId;
+	checkMapID();
+
 	
 	//Get layers' info
     $.ajax({
@@ -421,5 +433,14 @@ function loadMapFromURL() {
 			getMapInfo(myMapId[1], "none", "none", "none", 80);
 		}
 		
+	}
+}
+
+function checkMapID () {
+	if (globalId == 'mkn7oa88hi0s4pea_') {
+		pvRun();
+	}
+	else {
+		normalRun();
 	}
 }

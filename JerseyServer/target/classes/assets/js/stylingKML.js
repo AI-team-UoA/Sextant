@@ -3,7 +3,9 @@
  */
 var colorTable = ["#FF0014", "#FFF014", "#00FF78", "#00A078", "#F03C78",
                   "#0078FF", "#B478FF", "#F078D2", "#14FFF0", "#960014",
-                  "#145A00", "#1478B4", "#140078", "#142800", "#008278"];
+                  "#145A00", "#1478B4", "#140078", "#142800", "#008278",
+                  "#ccccb3", "#666699", "#800000", "#80b3ff", "#cc9900",
+                  "#00cc00", "#00e6ac", "#0000ff"];
 var currentColor = 0;
 
 /**
@@ -144,7 +146,7 @@ function styleFeatures() {
     //Update the layer colors to default. This colorization is not saved
 	mapLayers[pos].fillColor = '#ff9900';
 	mapLayers[pos].strokeColor = '#ff9900';
-	mapLayers[pos].icon = './assets/images/map-pin-md.png';
+	mapLayers[pos].icon = '';
 	mapLayers[pos].iconSize = 10;
 	
 	//Apply the default style to the layer
@@ -383,7 +385,8 @@ function addColorPanel(featureName, currentColor, startInterval, endInterval, la
 		panelElement.setAttribute('type', 'button');
 		panelElement.setAttribute('class', 'btn btn-xs');
 		panelElement.setAttribute('id', 'colorP'+layerName+currentColor+featureName+startInterval+endInterval);
-		panelElement.setAttribute('style', 'background-color: '+rgb2hex(document.getElementById('color'+currentColor).style.backgroundColor));
+		//panelElement.setAttribute('style', 'background-color: '+rgb2hex(document.getElementById('color'+currentColor).style.backgroundColor));
+		panelElement.setAttribute('style', 'background-color: '+colorTable[currentColor]);
 		panelElement.innerHTML = 'color';
 		panel.appendChild(panelElement);
 		
@@ -422,7 +425,7 @@ function removeFromColorPanel(layerName, position) {
 	
 	//Remove KML feature legends
 	var names = mapLayers[position].features.split(",");	
-	for (var i=0; i<names.length-1; i++) {
+	for (var i=0; i<names.length; i++) {
 		element = document.getElementById(layerName+names[i]);
 		if (element) { divRef.removeChild(element); }
 	}

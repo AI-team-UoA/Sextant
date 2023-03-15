@@ -6,13 +6,24 @@ var colorId = 0;
 function createQueryList() {
 	countR = 0;
 	
-	var portValue = document.getElementById('endpointUrlPort').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
 	var endpoint = document.getElementById('endpointUrl').value;
-	endpoint = endpoint.replace("http://", "");
+	port = getPort(endpoint);
+	
+	if (endpoint.slice(0,5) == "https") {
+		endpoint = endpoint.replace("https://", "");
+		
+	}else if (endpoint.slice(0,5) == "http:") {
+		endpoint = endpoint.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpoint.split('/');
 	var host = parts[0];
 	var endpointName = "";
@@ -29,7 +40,7 @@ function createQueryList() {
 
 function getPredefinedQueries(host, endpoint, port) {
 	document.getElementById('endpointUrl').disabled = true;
-	document.getElementById('endpointUrlPort').disabled = true;
+	//document.getElementById('endpointUrlPort').disabled = true;
 	
 	$.ajax({
         type: 'POST',
@@ -105,13 +116,24 @@ function loadQuery() {
 	document.getElementById('alertMsgServerWait').style.display = 'block';
 	showSpinner(colorSpin);
 	
-	var portValue = document.getElementById('endpointUrlPort').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
 	var endpointURI = document.getElementById('endpointUrl').value;	
-	endpointURI = endpointURI.replace("http://", "");
+	port = getPort(endpointURI);
+	
+	if (endpointURI.slice(0,5) == "https") {
+		endpointURI = endpointURI.replace("https://", "");
+		
+	}else if (endpointURI.slice(0,5) == "http:") {
+		endpointURI = endpointURI.replace("http://", "");
+		
+	} else {
+		
+	}
+	
 	var parts = endpointURI.split('/');
 	var host = parts[0];
 	var endpointName = "";
@@ -153,7 +175,7 @@ function resetForm() {
 	queryTable = [];
 	
 	document.getElementById('endpointUrl').disabled = false;
-	document.getElementById('endpointUrlPort').disabled = false;
+	//document.getElementById('endpointUrlPort').disabled = false;
 	
 	var divRef = document.getElementById('availiableQueries');
 	
@@ -177,17 +199,26 @@ function resetForm() {
  */
 function runQuery() {
 	var endpointURI = document.getElementById('endpointUrlQuery').value;
-	var portValue = document.getElementById('loadEndpointPort').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
+	port = getPort(endpointURI);
 	
-	if (endpointURI != "http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql") {		
+	if (endpointURI != "http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql") {	
 		//SPARQL endpoint that return KML file
 		
 		//Remove http:// from the URI
-		endpointURI = endpointURI.replace("http://", "");
+		if (endpointURI.slice(0,5) == "https") {
+			endpointURI = endpointURI.replace("https://", "");
+			
+		}else if (endpointURI.slice(0,5) == "http:") {
+			endpointURI = endpointURI.replace("http://", "");
+			
+		} else {
+			
+		}
 		
 		var tempLayer = document.getElementById('isTemporalQuery').checked;
 		
@@ -240,7 +271,60 @@ function runQuery() {
 	document.getElementById('loadEndpointPort').disabled = false;
 }
 
+function runQueryNew() {
+	var endpointURI = document.getElementById('endpointUrlQuery').value;
+	var tempLayer = document.getElementById('isTemporalQuery').checked;	
+	var queryText = document.getElementById('textQuery').value.toString();	
+	var name = document.getElementById('layerNameQuery').value;
+		
+	if (name == "") {
+	    document.getElementById('alertMsgFailEmpty').style.display = 'block';
+	    setTimeout(function() {$('#alertMsgFailEmpty').fadeOut('slow');}, fadeTime);
+	    return;
+	}
+				
+	//Get results from server and create the layer
+	document.getElementById('alertMsgServerWait').style.display = 'block';
+	showSpinner(colorSpin);
+		
+	getQueryResults(host, endpointName, queryText, name, port, tempLayer);	
+	
+	
+	//Reset form data
+    document.getElementById('poseUserQuery').reset();
+    document.getElementById('endpointUrlQuery').disabled = false;
+	document.getElementById('loadEndpointPort').disabled = false;
+}
+
+function getQueryResultsNew(url, query, layer, tempLayer) {
+	console.log(query);
+	console.log(layer);
+	console.log(url);
+	console.log(tempLayer);
+	
+    $.ajax({
+        type: 'GET',
+        url: rootURL + '/endpoint/getData',
+        data: {url: url, query: query, name: layer, isTemp: tempLayer},
+        dataType: 'text',
+        headers: {
+        	//'Accept-Charset' : 'utf-8',
+        	'Content-Type'   : 'text/plain; charset=utf-8',
+        },
+        timeout: ajaxTimeout,
+        success: uploadKML,
+        error: printError
+    });
+}
+
 function getQueryResults(host, endpointName, query, layer, port, tempLayer) {
+	console.log(host);
+	console.log(endpointName);
+	console.log(query);
+	console.log(layer);
+	console.log(port);
+	console.log(tempLayer);
+	
     $.ajax({
         type: 'POST',
         url: rootURL + '/endpoint/' + host + "/" + endpointName+ "/" + layer + "/" + port + "/" + tempLayer,
@@ -260,9 +344,17 @@ function uploadKML(results, status, jqXHR) {
 	hideSpinner();
     setTimeout(function() {$('#alertMsgServerWait').fadeOut('slow');}, fadeTime);
     
+		
+
     //parse results
-    var parseResultsLayer = results.split('\$');    
-    var endpointURI = 'http://' + parseResultsLayer[3] + '/' + parseResultsLayer[4] ;
+    var parseResultsLayer = results.split('\$');   
+		if (myHost.startsWith("https")) {
+			var endpointURI = 'https://' + parseResultsLayer[3] + '/' + parseResultsLayer[4] ;
+		}
+		else {
+			var endpointURI = 'http://' + parseResultsLayer[3] + '/' + parseResultsLayer[4] ;
+		} 
+    
     var tempLayer;
     if (parseResultsLayer[5] == 'true') {
     	tempLayer = true;
@@ -314,14 +406,23 @@ function updateQuery() {
 	showSpinner(colorSpin);
 	
 	var endpointURI = document.getElementById('endpointUrlQueryUpdate').value;
-	var portValue = document.getElementById('loadEndpointPortUpdate').value;
+	var portValue = '';
 	var port = 80;
 	if (portValue != "") {
 		port = Number(portValue);
 	}
+	port = getPort(endpointURI);
 	
 	//Remove http:// from the URI
-	endpointURI = endpointURI.replace("http://", "");
+	if (endpointURI.slice(0,5) == "https") {
+		endpointURI = endpointURI.replace("https://", "");
+		
+	}else if (endpointURI.slice(0,5) == "http:") {
+		endpointURI = endpointURI.replace("http://", "");
+		
+	} else {
+		
+	}
 	
 	var tempLayer = document.getElementById('isTemporalQueryUpdate').checked;
 	
@@ -378,4 +479,33 @@ function endpointSelect() {
 		document.getElementById('endpointUrlQuery').value = null;
 		document.getElementById('loadEndpointPort').value = null;
 	}
+}
+
+function testDBpedia() {
+	$.ajax({
+        type: 'POST',
+        url: 'http://test.strabon.di.uoa.gr/LEO/Query?query=SELECT+*%0AWHERE+%7B+%0A%09%3Fs+%3Fp+%3Fo%0A%7D%0ALIMIT+10%0A',
+        dataType: 'text',
+        headers: {
+        	'Accept' : 'application/sparql-results+xml',
+        	'Content-Type'   : 'application/x-www-form-urlencoded'
+        },
+        timeout: ajaxTimeout,
+        success: printDBpedia,
+        error: printError
+    });
+}
+
+function printDBpedia(results, status, jqXHR) {
+	console.log(results);
+}
+
+function testAPI() {
+
+	getQueryResults('test.strabon.di.uoa.gr',
+					'strabon@@@Query',
+					'PREFIX gadm:<http://geo.linkedopendata.gr/gadm/ontology#>  PREFIX geo:<http://www.opengis.net/ont/geosparql#>  PREFIX rdf:<http://www.w3.org/TR/rdf-schema/>   select ?name ?w2 where { ?adm a <http://geo.linkedopendata.gr/gadm/AdministrativeUnit> .  ?adm gadm:hasName ?name .  ?adm gadm:belongsToAdm2 ?adm2 .  ?adm2 gadm:hasName "Paris"^^<http://www.w3.org/2001/XMLSchema#string> . ?adm geo:hasGeometry ?geo2 . ?geo2 geo:asWKT ?w2 . }',
+					'testLayer',
+					80,
+					false);
 }
