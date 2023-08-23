@@ -95,11 +95,11 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 		UrlEncodedFormEntity encodedEntity = new UrlEncodedFormEntity(params, Charset.forName("UTF-8"));
 		method.setEntity(encodedEntity);
 		try {
-			URI uri = new URIBuilder(testMethod.getURI())
+			URI uri = new URIBuilder(method.getURI())
 				.addParameter("query", sparqlQuery)
 				.addParameter("format", format.getDefaultMIMEType())
 				.build();
-				testMethod.setURI(uri);	
+				method.setURI(uri);	
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -121,7 +121,7 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 			
 
 			// execute the method - NO HTTPS supported
-			HttpResponse response = hc.execute(testMethod);
+			HttpResponse response = hc.execute(method);
 
 
 			int statusCode = response.getStatusLine().getStatusCode();
