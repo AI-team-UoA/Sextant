@@ -343,18 +343,10 @@ function getQueryResults(host, endpointName, query, layer, port, tempLayer) {
 function uploadKML(results, status, jqXHR) {
 	hideSpinner();
     setTimeout(function() {$('#alertMsgServerWait').fadeOut('slow');}, fadeTime);
-    
-		
-
+        
     //parse results
-    var parseResultsLayer = results.split('\$');   
-		if (myHost.startsWith("https")) {
-			var endpointURI = 'https://' + parseResultsLayer[3] + '/' + parseResultsLayer[4] ;
-		}
-		else {
-			var endpointURI = 'http://' + parseResultsLayer[3] + '/' + parseResultsLayer[4] ;
-		} 
-    
+    var parseResultsLayer = results.split('\$');    
+    var endpointURI = 'http://' + parseResultsLayer[3] + '/' + parseResultsLayer[4] ;
     var tempLayer;
     if (parseResultsLayer[5] == 'true') {
     	tempLayer = true;

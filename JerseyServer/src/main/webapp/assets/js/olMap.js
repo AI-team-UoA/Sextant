@@ -53,17 +53,8 @@ disableSaveMap = false;
  * URL of the mobile server
  */
 var myHost = window.location.href;
-
-//Check for HTTPS
-if (myHost.startsWith("https")) {
-	var arrHost = myHost.replace("https://", "").split("/");
-	var rootURL = 'https://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';	
-}
-else {
-	var arrHost = myHost.replace("http://", "").split("/");
-	var rootURL = 'http://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';
-}
-
+var arrHost = myHost.replace("http://", "").split("/");
+var rootURL = 'http://' + arrHost[0] + '/' + arrHost[1] +'/rest/service';
 var parseRootURL = arrHost[0].split(':');
 var server = parseRootURL[0];
 

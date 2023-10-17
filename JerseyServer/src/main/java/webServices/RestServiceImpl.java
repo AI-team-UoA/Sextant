@@ -134,7 +134,7 @@ public class RestServiceImpl {
 	private static final String KML_FILE_EXT			= ".kml";
 	private static final String GML_FILE_EXT			= ".gml";
 
-	private String HTTP					= "http://";
+	private static final String HTTP					= "http://";
 	
 	private static final String STORE_KMLFOLDER			= ServerConfiguration.getString("STORE_KMLFOLDER");
 	private static final String MAPONTOLOGYFOLDER		= ServerConfiguration.getString("MAP_ONTOLOGY_FOLDER");
@@ -182,26 +182,21 @@ public class RestServiceImpl {
 	@PostConstruct
 	public void init() {
 		// get the context of the servlet   
-    webappName = context.getServletContextName() + context.getContextPath() + "/";
-    if (!webappName.startsWith("/")) {
-      webappName = "/" + webappName;
-    }
-    
-		//Check for HTTPS
-		if (servlet.isSecure()) {
-			HTTP = "https://";
-		}
-
-    //Layers' URLs format
-    //HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath()             
+        webappName = context.getServletContextName() + context.getContextPath() + "/";
+        if (!webappName.startsWith("/")) {
+        	webappName = "/" + webappName;
+        }
         
-    //System.out.println("********* servlet.getServerName(): "+servlet.getServerName());
-    //System.out.println("********* servlet.getServerPort(): "+servlet.getServerPort());
+        //Layers' URLs format
+        //HTTP + servlet.getServerName() + ":" + servlet.getServerPort() + context.getContextPath()             
         
-    //System.out.println("********* servlet.getRemoteHost(): "+servlet.getRemoteHost());
-    //System.out.println("********* servlet.getRemotePort(): "+servlet.getRemotePort());
+        //System.out.println("********* servlet.getServerName(): "+servlet.getServerName());
+        //System.out.println("********* servlet.getServerPort(): "+servlet.getServerPort());
         
-    //System.out.println("********* context.getContextPath(): "+context.getContextPath());
+        //System.out.println("********* servlet.getRemoteHost(): "+servlet.getRemoteHost());
+        //System.out.println("********* servlet.getRemotePort(): "+servlet.getRemotePort());
+        
+        //System.out.println("********* context.getContextPath(): "+context.getContextPath());
         
       //   cb.setDebugEnabled(true)
 		  // .setOAuthConsumerKey(CONSUMER_KEY)
