@@ -100,6 +100,11 @@ function parseTimelineFeatures(layer, uri) {
             var when = checkElement(pms[i], 'when');
             var begin = checkElement(pms[i], 'begin');
             var end = checkElement(pms[i], 'end');
+
+						//Use ?time in ExtendedData if we dont have temporal KML
+						if (when == null) {
+							when = pms[i].querySelector("Data[name='time']").firstElementChild.textContent;
+						}
             
             //Correct end tags if they are null, but a begin tag is present. This means that the placemark is valid till now
             if (begin != null && end == null) {
