@@ -91,7 +91,8 @@
 	<script type="text/javascript" src="./assets/js/GeoTIFF.js"></script>
 	<script type="text/javascript" src="./assets/js/helpMapDrawArea.js"></script>
 	<script type="text/javascript" src="./assets/js/OpenLayers.js"></script>
-	<script type="text/javascript" src="./assets/js/twitterSearch.js"></script>
+	
+	<script type="text/javascript" src="./assets/js/geoqa.js"></script>
 
 	<!-- Dragdealer JS -->
 	<script type="text/javascript" src="./assets/js/dragdealer.js"></script>
@@ -113,6 +114,9 @@
 	<link href="./assets/css/sextant.css" rel="stylesheet" />
 
 	<script src="./assets/js/jquery.ajax-cross-origin.min.js"></script>
+
+	<!-- WKT to GeoJSON transformation library -->
+	<script src="https://unpkg.com/@terraformer/wkt"></script>
 
 	<!-- End Of Imports -->
 
@@ -2430,6 +2434,41 @@
 
 						<!-- This container has all the classes in the endpoint -->
 						<div id="exploreClasses">
+
+						</div>
+					</div>
+				</div>
+
+				<!-- QA Panel -->
+				<div id="qaPanel" data-toggle="collapse" data-target="#qaBody" aria-expanded="false"
+					aria-controls="qaBody">
+					<div class="page-header">
+						<div class="row">
+							<div class="col-md-11 col-sm-11">
+								<h4>GeoQA</h4>
+							</div>
+							<div class="col-md-1 col-sm-1">
+								<!--<a onClick="showHelpPage('qa.html')" title="Help"><i class="fa fa-question-circle fa-2x"></i></a>-->
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="qaBody" class="collapse">
+					<div>
+						<h5 class="form-signin-heading">Chat History</h5>
+						<div id="chatHistory">
+							<textarea class="qaText form-control" rows="5" placeholder="Ask me a question!"></textarea>
+
+						</div>
+						
+						<div class="row">
+							<div class="col-sm-4" style="margin-top: 50px;">
+								<button type="button" class="btn btn-block btn-md btn-default"
+									onClick="askGeoQA()">Send</button>
+							</div>
+						</div>
+
+						
 
 						</div>
 					</div>

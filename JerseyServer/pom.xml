@@ -150,7 +150,7 @@
 			<version>2.6.3</version>
 		</dependency>
 		
-		<!-- Twitter4j -->
+		<!-- Twitter4j 
 		<dependency>
         	<groupId>org.twitter4j</groupId>
             <artifactId>twitter4j-core</artifactId>
@@ -162,6 +162,13 @@
             <artifactId>twitter4j-stream</artifactId>
             <version>[4.0,)</version>
         </dependency>
+				-->
+
+				<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20180130</version>
+</dependency>
        
 	</dependencies>
 	<build>

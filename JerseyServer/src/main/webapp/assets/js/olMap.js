@@ -541,25 +541,6 @@ function initialize() {
 		        else {
 		        	document.getElementById('scrollTopPanel').style.display = 'none';
 		        }
-		        
-		        if ((contentHeight*0.9) <= scrollTop)
-		        {		        		      	
-		        	var keys = document.getElementById('twitterSearchKeys').value;
-		        	if (keys != ''){
-		        		showSpinnerTwitter(colorSpin);
-		        		$.ajax({
-			                type: 'GET',
-			                url: rootURL + '/findTwittsRest?keys='+encodeURIComponent(keys)+'&sinceId='+sinceId+'&maxId='+maxId+'&update=false',
-			                headers: {
-			                	//'Accept-Charset' : 'utf-8',
-			                	'Content-Type'   : 'text/plain; charset=utf-8',
-			                },
-			                timeout: 0,
-			                success: parseTwitterSearchResults,
-			                error: printError
-			            });
-		        	}
-		        }
 		    },
 		    false
 	);
@@ -882,3 +863,7 @@ function normalRun() {
     
 }
 
+
+function scrollTopPanels() {
+	$("#sextantPanels").animate({scrollTop: 0}, 500);
+}

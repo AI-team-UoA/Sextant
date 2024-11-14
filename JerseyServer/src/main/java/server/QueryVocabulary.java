@@ -12,5 +12,5 @@ public interface QueryVocabulary {
 	//properties
 	public static final URI HASTEXT  			= new MemURI(null, Q_NAMESPACE, "hasText");
 	public static final URI HASLABEL  			= new MemURI(null, Q_NAMESPACE, "hasLabel");
-	public static final URI IS_TEMPORAL_QUERY	= new MemURI(null, Q_NAMESPACE, "isTemporal");	
+	public static final URI IS_TEMPORAL_QUERY	= new MemURI(null, Q_NAMESPACE, "isTemporal");
 }

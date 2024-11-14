@@ -82,7 +82,7 @@ body {
 	overflow-y: auto;
 }
 
-#explorePanel, #twitterHeader {
+#explorePanel, #twitterHeader, #qaPanel {
 	cursor: hand;
 }
 
@@ -859,4 +859,19 @@ img.evtIcon {
 
 .portInput {
 	display: none;
+}
+
+.qaText {
+	width: 70%;
+	margin-bottom: 20px;
+}
+
+.qaResponse {
+	background-color: #b3e3ed;
+	float: right;
+}
+
+.qaError {
+	background-color: #e8747c;
+	float: right;
 }
