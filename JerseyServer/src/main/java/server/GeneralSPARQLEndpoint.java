@@ -13,6 +13,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -27,7 +29,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.openrdf.query.resultio.TupleQueryResultFormat;
@@ -74,36 +78,41 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 	public EndpointResult query(String sparqlQuery, stSPARQLQueryResultFormat format, String endpointType) throws IOException {
 		assert(format != null);
 		
-		//System.out.println(URLEncoder.encode(sparqlQuery, "UTF-8"));
-		// create a post method to execute
-		System.out.println("*** This should change for HTTPS ***");
-		System.out.println(getConnectionURL());
+		// create a method to execute
 		
-		String newUrl =  getConnectionURL().replace("http:", "https:");
+		String newUrl =  getConnectionURL();
+		//String newUrl =  getConnectionURL().replace("http:", "https:");
+		System.out.println(newUrl);
 		
 		HttpPost method = new HttpPost(getConnectionURL());
+		HttpGet testMethod = new HttpGet(newUrl);
 
 		// set the query parameter
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("query", sparqlQuery));
 		params.add(new BasicNameValuePair("format", format.getDefaultMIMEType()));
 		
-		//Add required parameters for Vistuoso SPARQL endpoints
-		if (!getConnectionURL().contains("openrdf-sesame")) {
-			params.add(new BasicNameValuePair("default-graph-uri", "http://"+endpointType));
-			//System.out.println("http://"+endpointType);
-		}
-		
 		UrlEncodedFormEntity encodedEntity = new UrlEncodedFormEntity(params, Charset.forName("UTF-8"));
 		method.setEntity(encodedEntity);
-		
+		try {
+			URI uri = new URIBuilder(method.getURI())
+				.addParameter("query", sparqlQuery)
+				.addParameter("format", format.getDefaultMIMEType())
+				.build();
+				method.setURI(uri);	
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		// set the content type
 		method.setHeader("Content-Type", "application/x-www-form-urlencoded");
+		testMethod.setHeader("Content-Type", "application/x-www-form-urlencoded");
 		
 		// set the accept format
 		System.out.println(format.getDefaultMIMEType());
-		method.addHeader("Accept", format.getDefaultMIMEType());		
+		method.addHeader("Accept", format.getDefaultMIMEType());	
+		testMethod.addHeader("Accept", format.getDefaultMIMEType());	
 		
 		try {
 			// response that will be filled next
@@ -113,6 +122,8 @@ public class GeneralSPARQLEndpoint extends HTTPClient{
 
 			// execute the method - NO HTTPS supported
 			HttpResponse response = hc.execute(method);
+
+
 			int statusCode = response.getStatusLine().getStatusCode();
 			System.out.println(statusCode);
 			
